@@ -1,0 +1,712 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ==========================================
+// ENUMS
+// ==========================================
+
+enum Role {
+  SUPER_ADMIN
+  STAFF
+  ARTIST
+  USER
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum TicketStatus {
+  ACTIVE
+  USED
+  CANCELLED
+}
+
+enum ShowStatus {
+  SCHEDULED
+  CANCELLED
+  COMPLETED
+}
+
+enum CustomizationType {
+  AUTOGRAPH
+  HANDWRITTEN_LETTER
+  VIDEO_GREETING
+  VIDEO_CALL
+  PRODUCT_PERSONALIZATION
+}
+
+enum NotificationType {
+  NEW_SALE
+  ORDER_CONFIRMATION
+  NEW_SHOW
+  NEW_PRODUCT
+  TICKET_PURCHASED
+  REFERRAL_COMMISSION
+  GENERAL
+  CUSTOMIZATION_FULFILLED
+  ORDER_SHIPPED
+  ORDER_DELIVERED
+  VIDEO_CALL_SCHEDULED
+  RETURN_REQUEST_UPDATE
+}
+
+enum CommissionStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
+
+enum CustomizationStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ReturnRequestStatus {
+  OPEN
+  REVIEWING
+  APPROVED
+  REJECTED
+  RESOLVED
+}
+
+enum InvoiceType {
+  BOLETA
+  FACTURA
+}
+
+enum CommunityMessageType {
+  ANNOUNCEMENT
+  CHAT
+}
+
+// ==========================================
+// USERS & AUTH
+// ==========================================
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password      String
+  firstName     String   @map("first_name")
+  lastName      String   @map("last_name")
+  phone         String?
+  role          Role     @default(USER)
+  isActive      Boolean  @default(true) @map("is_active")
+  resetToken    String?  @map("reset_token")
+  resetTokenExp DateTime? @map("reset_token_exp")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  artist        Artist?
+  orders        Order[]
+  cart          Cart?
+  tickets       Ticket[]
+  followedArtists ArtistFollower[]
+  notifications Notification[]
+  referralCode  Referral?   @relation("ReferralOwner")
+  referredBy    Referral?   @relation("ReferredUser", fields: [referredById], references: [id])
+  referredById  String?     @map("referred_by_id")
+  reviews       Review[]
+  wishlist      Wishlist[]
+  messagesSent       Message[] @relation("MessagesSent")
+  messagesReceived   Message[] @relation("MessagesReceived")
+  communityMessages    CommunityMessage[]
+  communityMemberships CommunityMember[]
+  returnRequests       ReturnRequest[] @relation("UserReturns")
+
+  @@map("users")
+}
+
+// ==========================================
+// ARTISTS
+// ==========================================
+
+model Artist {
+  id              String   @id @default(uuid())
+  userId          String   @unique @map("user_id")
+  stageName       String   @map("stage_name")
+  slug            String   @unique
+  tagline         String?
+  biography       String?
+  profileImage    String?  @map("profile_image")
+  bannerImage     String?  @map("banner_image")
+  socialLinks     Json?    @map("social_links") // { instagram, tiktok, youtube, twitter, facebook }
+  landingConfig   Json?    @map("landing_config") // { accentColor, layout, showBio, showStats, showGallery, customCss }
+  isActive        Boolean  @default(true) @map("is_active")
+  isApproved      Boolean  @default(false) @map("is_approved")
+  isFeatured      Boolean  @default(false) @map("is_featured")
+  commissionRate  Decimal  @default(50) @map("commission_rate") @db.Decimal(5, 2)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  artistProducts   ArtistProduct[]
+  shows            Show[]
+  followers        ArtistFollower[]
+  mediaItems       MediaItem[]
+  customizations   ArtistCustomization[]
+  commissions        Commission[]
+  communityMessages  CommunityMessage[]
+  communityMembers   CommunityMember[]
+
+  @@map("artists")
+}
+
+model ArtistFollower {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  artistId  String   @map("artist_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, artistId])
+  @@map("artist_followers")
+}
+
+model ArtistCustomization {
+  id                String            @id @default(uuid())
+  artistId          String            @map("artist_id")
+  type              CustomizationType
+  price             Decimal           @db.Decimal(10, 2)
+  isActive          Boolean           @default(true) @map("is_active")
+  description       String?
+  // Video call config
+  meetingLink       String?           @map("meeting_link")
+  callDuration      Int?              @map("call_duration")
+  maxPerWeek        Int?              @map("max_per_week")
+  availabilitySlots Json?             @map("availability_slots")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  artist         Artist           @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  videoCallSlots VideoCallSlot[]
+
+  @@unique([artistId, type])
+  @@map("artist_customizations")
+}
+
+model MediaItem {
+  id        String   @id @default(uuid())
+  artistId  String   @map("artist_id")
+  type      String   // "image", "video", "post"
+  url       String?
+  content   String?  // For text posts
+  title     String?
+  sortOrder Int      @default(0) @map("sort_order")
+  showId    String?  @map("show_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  show   Show?  @relation(fields: [showId], references: [id], onDelete: SetNull)
+
+  @@map("media_items")
+}
+
+// ==========================================
+// PRODUCTS & CATEGORIES
+// ==========================================
+
+model Category {
+  id               String    @id @default(uuid())
+  name             String    @unique
+  slug             String    @unique
+  parentId         String?   @map("parent_id")
+  sortOrder        Int       @default(0) @map("sort_order")
+  variantTemplates Json?     @default("[]") @map("variant_templates")
+  isActive         Boolean   @default(true) @map("is_active")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id], onDelete: SetNull)
+  children Category[] @relation("CategoryHierarchy")
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id                String   @id @default(uuid())
+  name              String
+  slug              String   @unique
+  description       String?
+  categoryId        String   @map("category_id")
+  manufacturingCost Decimal  @map("manufacturing_cost") @db.Decimal(10, 2)
+  suggestedPrice    Decimal  @map("suggested_price") @db.Decimal(10, 2)
+  images            String[] // Array of Cloudinary URLs
+  variants          Json     @default("[]") // [{"name": "Talla", "options": ["S","M","L"]}, ...]
+  isActive          Boolean  @default(true) @map("is_active")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  category       Category        @relation(fields: [categoryId], references: [id])
+  artistProducts ArtistProduct[]
+
+  @@map("products")
+}
+
+model ArtistProduct {
+  id               String   @id @default(uuid())
+  artistId         String   @map("artist_id")
+  productId        String   @map("product_id")
+  salePrice        Decimal  @map("sale_price") @db.Decimal(10, 2)
+  artistCommission Decimal  @map("artist_commission") @db.Decimal(5, 2) // % of margin for this artist-product
+  stock            Int      @default(0)
+  isActive         Boolean  @default(true) @map("is_active")
+  isFeatured       Boolean  @default(false) @map("is_featured")
+  customImages     String[] @map("custom_images") // Artist-specific product images
+  publishAt        DateTime? @map("publish_at") // Scheduled publication date
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  artist    Artist      @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  product   Product     @relation(fields: [productId], references: [id])
+  cartItems CartItem[]
+  orderItems OrderItem[]
+  reviews   Review[]
+  wishlist  Wishlist[]
+
+  @@unique([artistId, productId])
+  @@map("artist_products")
+}
+
+// ==========================================
+// CART
+// ==========================================
+
+model Cart {
+  id        String     @id @default(uuid())
+  userId    String     @unique @map("user_id")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id              String   @id @default(uuid())
+  cartId          String   @map("cart_id")
+  artistProductId String   @map("artist_product_id")
+  quantity         Int      @default(1)
+  variantSelection Json?    @map("variant_selection") // {"Talla": "M", "Color": "Negro"}
+  personalization  String?  // Custom name, phrase, etc.
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  cart          Cart          @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  artistProduct ArtistProduct @relation(fields: [artistProductId], references: [id])
+  customizations CartItemCustomization[]
+
+  @@map("cart_items")
+}
+
+model CartItemCustomization {
+  id         String            @id @default(uuid())
+  cartItemId String            @map("cart_item_id")
+  type       CustomizationType
+  price      Decimal           @db.Decimal(10, 2)
+
+  cartItem CartItem @relation(fields: [cartItemId], references: [id], onDelete: Cascade)
+
+  @@map("cart_item_customizations")
+}
+
+// ==========================================
+// ORDERS
+// ==========================================
+
+model Order {
+  id              String      @id @default(uuid())
+  orderNumber     String      @unique @map("order_number")
+  userId          String      @map("user_id")
+  status          OrderStatus @default(PENDING)
+  subtotal        Decimal     @db.Decimal(10, 2)
+  shippingCost    Decimal     @default(0) @map("shipping_cost") @db.Decimal(10, 2)
+  tax             Decimal     @default(0) @db.Decimal(10, 2)
+  total           Decimal     @db.Decimal(10, 2)
+
+  // Shipping info
+  shippingName    String      @map("shipping_name")
+  shippingAddress String      @map("shipping_address")
+  shippingCity    String      @map("shipping_city")
+  shippingState   String?     @map("shipping_state")
+  shippingZip     String?     @map("shipping_zip")
+  shippingPhone   String?     @map("shipping_phone")
+
+  // Payment info
+  paymentId       String?     @map("payment_id") // Mercado Pago ID
+  paymentMethod   String?     @map("payment_method")
+
+  // Invoice
+  invoiceType     InvoiceType? @map("invoice_type")
+  invoiceNumber   String?      @map("invoice_number")
+  ruc             String?      // For factura
+
+  // Referral tracking
+  referralId      String?     @map("referral_id")
+
+  // Coupon
+  couponId        String?     @map("coupon_id")
+  discount        Decimal     @default(0) @db.Decimal(10, 2)
+
+  // Fulfillment / tracking
+  trackingNumber  String?     @map("tracking_number")
+  carrier         String?
+  shippedAt       DateTime?   @map("shipped_at")
+  deliveredAt     DateTime?   @map("delivered_at")
+  fulfillmentNotes String?    @map("fulfillment_notes")
+
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  user           User            @relation(fields: [userId], references: [id])
+  referral       Referral?       @relation(fields: [referralId], references: [id])
+  coupon         Coupon?         @relation(fields: [couponId], references: [id])
+  items          OrderItem[]
+  commissions    Commission[]
+  returnRequests ReturnRequest[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id              String  @id @default(uuid())
+  orderId         String  @map("order_id")
+  artistProductId String  @map("artist_product_id")
+  quantity         Int
+  unitPrice        Decimal @map("unit_price") @db.Decimal(10, 2)
+  totalPrice       Decimal @map("total_price") @db.Decimal(10, 2)
+  variantSelection Json?   @map("variant_selection") // {"Talla": "M", "Color": "Negro"}
+  personalization  String?
+
+  // Relations
+  order          Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  artistProduct  ArtistProduct  @relation(fields: [artistProductId], references: [id])
+  customizations OrderItemCustomization[]
+
+  @@map("order_items")
+}
+
+model OrderItemCustomization {
+  id            String              @id @default(uuid())
+  orderItemId   String              @map("order_item_id")
+  type          CustomizationType
+  price         Decimal             @db.Decimal(10, 2)
+  fulfilled     Boolean             @default(false)
+  status        CustomizationStatus @default(PENDING)
+  fulfilledAt   DateTime?           @map("fulfilled_at")
+  fulfilledBy   String?             @map("fulfilled_by")
+  attachmentUrl String?             @map("attachment_url")
+  notes         String?
+  scheduledDate DateTime?           @map("scheduled_date")
+  meetingLink   String?             @map("meeting_link")
+
+  orderItem OrderItem @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+
+  @@map("order_item_customizations")
+}
+
+// ==========================================
+// SHOWS & TICKETS
+// ==========================================
+
+model Show {
+  id            String     @id @default(uuid())
+  artistId      String     @map("artist_id")
+  name          String
+  slug          String     @unique
+  description   String?
+  venue         String     // Place name
+  address       String?
+  city          String?
+  date          DateTime
+  endDate       DateTime?  @map("end_date")
+  image         String?
+  ticketPrice      Decimal?   @map("ticket_price") @db.Decimal(10, 2)
+  platformFee      Decimal    @default(10) @map("platform_fee") @db.Decimal(5, 2) // % platform keeps per ticket
+  totalCapacity    Int?       @map("total_capacity")
+  ticketsEnabled   Boolean    @default(true) @map("tickets_enabled")
+  publishAt     DateTime?  @map("publish_at") // Scheduled publication date
+  status        ShowStatus @default(SCHEDULED)
+  createdAt     DateTime   @default(now()) @map("created_at")
+  updatedAt     DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  artist     Artist      @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  tickets    Ticket[]
+  mediaItems MediaItem[]
+
+  @@map("shows")
+}
+
+model Ticket {
+  id        String       @id @default(uuid())
+  showId    String       @map("show_id")
+  userId    String       @map("user_id")
+  qrCode    String       @unique @map("qr_code")
+  status    TicketStatus @default(ACTIVE)
+  paymentId String?      @map("payment_id") // Mercado Pago ID
+  price     Decimal      @db.Decimal(10, 2)
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  show        Show         @relation(fields: [showId], references: [id], onDelete: Cascade)
+  user        User         @relation(fields: [userId], references: [id])
+  commissions Commission[]
+
+  @@map("tickets")
+}
+
+// ==========================================
+// REFERRALS & COMMISSIONS
+// ==========================================
+
+model Referral {
+  id             String   @id @default(uuid())
+  code           String   @unique
+  ownerId        String   @unique @map("owner_id")
+  commissionRate Decimal  @default(5) @map("commission_rate") @db.Decimal(5, 2)
+  totalClicks    Int      @default(0) @map("total_clicks")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  // Relations
+  owner         User         @relation("ReferralOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  referredUsers User[]       @relation("ReferredUser")
+  orders        Order[]
+  commissions   Commission[] @relation("ReferralCommission")
+
+  @@map("referrals")
+}
+
+model Commission {
+  id         String           @id @default(uuid())
+  orderId    String?          @map("order_id")
+  ticketId   String?          @map("ticket_id")
+  amount     Decimal          @db.Decimal(10, 2)
+  rate       Decimal          @db.Decimal(5, 2)
+  type       String           // "artist", "referral", or "ticket"
+  status     CommissionStatus @default(PENDING)
+  paidAt     DateTime?        @map("paid_at")
+  createdAt  DateTime         @default(now()) @map("created_at")
+
+  // For artist commissions
+  artistId   String?  @map("artist_id")
+  // For referral commissions
+  referralId String?  @map("referral_id")
+
+  order    Order?    @relation(fields: [orderId], references: [id])
+  ticket   Ticket?   @relation(fields: [ticketId], references: [id])
+  artist   Artist?   @relation(fields: [artistId], references: [id])
+  referral Referral? @relation("ReferralCommission", fields: [referralId], references: [id])
+
+  @@map("commissions")
+}
+
+// ==========================================
+// NOTIFICATIONS
+// ==========================================
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String           @map("user_id")
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false) @map("is_read")
+  data      Json?            // Extra data (orderId, showId, etc.)
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+// ==========================================
+// MESSAGES
+// ==========================================
+
+model Message {
+  id         String   @id @default(uuid())
+  senderId   String   @map("sender_id")
+  receiverId String   @map("receiver_id")
+  content    String
+  isRead     Boolean  @default(false) @map("is_read")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  sender   User @relation("MessagesSent", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("MessagesReceived", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+// ==========================================
+// COUPONS
+// ==========================================
+
+model Coupon {
+  id            String    @id @default(uuid())
+  code          String    @unique
+  description   String?
+  discountType  String    @map("discount_type") // "percentage" or "fixed"
+  discountValue Decimal   @map("discount_value") @db.Decimal(10, 2)
+  minPurchase   Decimal?  @map("min_purchase") @db.Decimal(10, 2)
+  maxUses       Int?      @map("max_uses")
+  usedCount     Int       @default(0) @map("used_count")
+  isActive      Boolean   @default(true) @map("is_active")
+  expiresAt     DateTime? @map("expires_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  orders Order[]
+
+  @@map("coupons")
+}
+
+// ==========================================
+// WISHLIST
+// ==========================================
+
+model Wishlist {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  artistProductId String   @map("artist_product_id")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  artistProduct ArtistProduct @relation(fields: [artistProductId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, artistProductId])
+  @@map("wishlists")
+}
+
+// ==========================================
+// REVIEWS
+// ==========================================
+
+model Review {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  artistProductId String   @map("artist_product_id")
+  rating          Int      // 1-5
+  comment         String?
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  artistProduct ArtistProduct @relation(fields: [artistProductId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, artistProductId])
+  @@map("reviews")
+}
+
+// ==========================================
+// PLATFORM SETTINGS
+// ==========================================
+
+model PlatformSetting {
+  id    String @id @default(uuid())
+  key   String @unique
+  value String
+  label String?
+
+  @@map("platform_settings")
+}
+
+// ==========================================
+// VIDEO CALL SLOTS
+// ==========================================
+
+model VideoCallSlot {
+  id                      String   @id @default(uuid())
+  artistCustomizationId   String   @map("artist_customization_id")
+  orderCustomizationId    String?  @map("order_customization_id")
+  date                    DateTime
+  duration                Int      // minutes
+  isBooked                Boolean  @default(false) @map("is_booked")
+  createdAt               DateTime @default(now()) @map("created_at")
+
+  artistCustomization ArtistCustomization @relation(fields: [artistCustomizationId], references: [id], onDelete: Cascade)
+
+  @@map("video_call_slots")
+}
+
+// ==========================================
+// RETURN REQUESTS
+// ==========================================
+
+model ReturnRequest {
+  id          String              @id @default(uuid())
+  orderId     String              @map("order_id")
+  userId      String              @map("user_id")
+  reason      String
+  description String?
+  images      String[]
+  status      ReturnRequestStatus @default(OPEN)
+  adminNotes  String?             @map("admin_notes")
+  resolvedAt  DateTime?           @map("resolved_at")
+  resolvedBy  String?             @map("resolved_by")
+  createdAt   DateTime            @default(now()) @map("created_at")
+  updatedAt   DateTime            @updatedAt @map("updated_at")
+
+  order Order @relation(fields: [orderId], references: [id])
+  user  User  @relation("UserReturns", fields: [userId], references: [id])
+
+  @@map("return_requests")
+}
+
+// ==========================================
+// COMMUNITY MESSAGES
+// ==========================================
+
+model CommunityMessage {
+  id        String               @id @default(uuid())
+  artistId  String               @map("artist_id")
+  senderId  String               @map("sender_id")
+  type      CommunityMessageType
+  content   String
+  isPinned  Boolean              @default(false) @map("is_pinned")
+  createdAt DateTime             @default(now()) @map("created_at")
+
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+  sender User   @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([artistId, type, createdAt])
+  @@map("community_messages")
+}
+
+model CommunityMember {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  artistId  String   @map("artist_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, artistId])
+  @@map("community_members")
+}

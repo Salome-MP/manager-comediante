@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(head:*)",
+      "Bash(grep:*)",
+      "Bash(tail:*)",
+      "Bash(cd:*)",
+      "Bash(grep Type error::*)",
+      "Bash(cd \"D:/manager-comediante/frontend\" && npx tsc --noEmit 2>&1 | grep \"admin/\" 2>&1)",
+      "Bash(echo still running or parse error:*)"
+    ]
+  }
+}
