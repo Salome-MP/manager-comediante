@@ -118,6 +118,25 @@ export class ProductsController {
     return this.productsService.create(dto);
   }
 
+  @Get('assignments')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.SUPER_ADMIN, Role.STAFF)
+  @ApiOperation({ summary: 'Listar todas las asignaciones artista-producto (Admin)' })
+  findAllAssignments(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('artistId') artistId?: string,
+    @Query('categoryId') categoryId?: string,
+  ) {
+    return this.productsService.findAllAssignments(
+      page ? parseInt(page) : 1,
+      limit ? parseInt(limit) : 20,
+      artistId,
+      categoryId,
+    );
+  }
+
   @Get()
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -173,7 +192,7 @@ export class ProductsController {
   @ApiOperation({ summary: 'Actualizar producto de artista (Admin)' })
   updateArtistProduct(
     @Param('id') id: string,
-    @Body() data: { salePrice?: number; stock?: number; isActive?: boolean; isFeatured?: boolean; publishAt?: string | null },
+    @Body() data: { salePrice?: number; stock?: number; isActive?: boolean; isFeatured?: boolean; publishAt?: string | null; customImages?: string[] },
   ) {
     return this.productsService.updateArtistProduct(id, data);
   }

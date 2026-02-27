@@ -34,8 +34,8 @@ export class ReportsService {
           user: { select: { firstName: true, lastName: true } },
         },
       }),
-      this.prisma.order.aggregate({ _sum: { total: true } }),
-      this.prisma.order.aggregate({ where: { status: { in: PAID_STATUSES } }, _sum: { total: true } }),
+      this.prisma.order.aggregate({ _sum: { subtotal: true } }),
+      this.prisma.order.aggregate({ where: { status: { in: PAID_STATUSES } }, _sum: { subtotal: true } }),
       this.prisma.ticket.aggregate({ where: { paymentId: { not: null }, status: { not: 'CANCELLED' } }, _sum: { price: true } }),
     ]);
 
@@ -47,8 +47,8 @@ export class ReportsService {
       totalShows,
       totalTicketsSold,
       ticketRevenue: Number(ticketRevenue._sum.price || 0),
-      totalRevenue: Number(totalRevenue._sum.total || 0),
-      paidRevenue: Number(paidRevenue._sum.total || 0) + Number(ticketRevenue._sum.price || 0),
+      totalRevenue: Number(totalRevenue._sum.subtotal || 0),
+      paidRevenue: Number(paidRevenue._sum.subtotal || 0) + Number(ticketRevenue._sum.price || 0),
       recentOrders,
     };
   }
@@ -73,7 +73,7 @@ export class ReportsService {
         createdAt: { gte: startDate },
         status: { in: PAID_STATUSES },
       },
-      _sum: { total: true },
+      _sum: { subtotal: true },
     });
 
     // 2) Total ticket sales in period
@@ -85,7 +85,7 @@ export class ReportsService {
       _sum: { price: true },
     });
 
-    const totalSales = Number(orderRevenue._sum?.total || 0) + Number(ticketRevenue._sum?.price || 0);
+    const totalSales = Number(orderRevenue._sum?.subtotal || 0) + Number(ticketRevenue._sum?.price || 0);
 
     // 3) Manufacturing cost for items sold in period
     const orderItems = await this.prisma.orderItem.findMany({
@@ -217,7 +217,7 @@ export class ReportsService {
         grouped.set(key, { products: 0, tickets: 0, orders: 0 });
       }
       const entry = grouped.get(key)!;
-      entry.products += Number(order.total);
+      entry.products += Number(order.subtotal);
       entry.orders += 1;
     }
 

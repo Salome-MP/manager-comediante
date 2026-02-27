@@ -4,17 +4,12 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import api from '@/lib/api';
 import { useAuthStore } from '@/stores/auth.store';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
-} from '@/components/ui/dialog';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
-import { Pencil, Package, Search, X } from 'lucide-react';
+import { Package, Search, X } from 'lucide-react';
 
 interface ArtistProduct {
   id: string;
@@ -43,11 +38,6 @@ export default function ArtistProductosPage() {
 
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
-
-  const [editOpen, setEditOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [editTarget, setEditTarget] = useState<ArtistProduct | null>(null);
-  const [editForm, setEditForm] = useState({ salePrice: 0, stock: 0 });
 
   const fetchProducts = useCallback(async () => {
     if (!user?.artistId) return;
@@ -82,30 +72,6 @@ export default function ArtistProductosPage() {
   }, [products, search, category]);
 
   const hasFilters = search !== '' || category !== 'all';
-
-  const openEdit = (ap: ArtistProduct) => {
-    setEditTarget(ap);
-    setEditForm({ salePrice: ap.salePrice, stock: ap.stock });
-    setEditOpen(true);
-  };
-
-  const handleEdit = async () => {
-    if (!editTarget) return;
-    setSaving(true);
-    try {
-      await api.patch(`/products/artist-product/${editTarget.id}`, {
-        salePrice: Number(editForm.salePrice),
-        stock: Number(editForm.stock),
-      });
-      toast.success('Producto actualizado');
-      setEditOpen(false);
-      fetchProducts();
-    } catch {
-      toast.error('Error al actualizar');
-    } finally {
-      setSaving(false);
-    }
-  };
 
   if (loading) {
     return (
@@ -168,7 +134,7 @@ export default function ArtistProductosPage() {
       )}
 
       {/* Table */}
-      <div className="overflow-hidden rounded-2xl border border-border-default bg-surface-sidebar">
+      <div className="overflow-hidden rounded-2xl border border-border-default bg-surface-card">
         <div className="overflow-x-auto">
         <Table className="min-w-[640px]">
           <TableHeader>
@@ -191,15 +157,12 @@ export default function ArtistProductosPage() {
               <TableHead className="text-xs font-semibold uppercase tracking-wider text-text-dim">
                 Estado
               </TableHead>
-              <TableHead className="text-right text-xs font-semibold uppercase tracking-wider text-text-dim">
-                Acciones
-              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow className="border-border-default hover:bg-overlay-hover">
-                <TableCell colSpan={7} className="py-16 text-center">
+                <TableCell colSpan={6} className="py-16 text-center">
                   <div className="flex flex-col items-center gap-3">
                     <div className="rounded-xl bg-overlay-light p-4">
                       <Package className="h-8 w-8 text-text-ghost" />
@@ -262,16 +225,6 @@ export default function ArtistProductosPage() {
                         {ap.product?.isActive ? 'Activo' : 'Inactivo'}
                       </span>
                     </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => openEdit(ap)}
-                        className="h-8 w-8 text-text-dim hover:bg-overlay-light hover:text-text-primary"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                    </TableCell>
                   </TableRow>
                 );
               })
@@ -281,58 +234,6 @@ export default function ArtistProductosPage() {
         </div>
       </div>
 
-      {/* Edit dialog */}
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="border-border-strong bg-surface-card text-text-primary sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-text-primary">
-              Editar {editTarget?.product?.name}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-2">
-            <div className="grid gap-2">
-              <Label className="text-xs font-medium text-text-dim">
-                Precio de Venta (S/.)
-              </Label>
-              <Input
-                type="number"
-                step="0.01"
-                min={0}
-                value={editForm.salePrice}
-                onChange={(e) => setEditForm(f => ({ ...f, salePrice: Number(e.target.value) }))}
-                className="border-border-strong bg-overlay-light text-text-primary focus:border-navy-500 focus:ring-navy-500/20"
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label className="text-xs font-medium text-text-dim">Stock</Label>
-              <Input
-                type="number"
-                min={0}
-                value={editForm.stock}
-                onChange={(e) => setEditForm(f => ({ ...f, stock: Number(e.target.value) }))}
-                className="border-border-strong bg-overlay-light text-text-primary focus:border-navy-500 focus:ring-navy-500/20"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setEditOpen(false)}
-              disabled={saving}
-              className="border-border-strong bg-overlay-light text-text-secondary hover:border-border-accent hover:bg-overlay-medium hover:text-text-primary"
-            >
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleEdit}
-              disabled={saving}
-              className="bg-navy-600 text-white hover:bg-navy-500"
-            >
-              {saving ? 'Guardando...' : 'Guardar'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

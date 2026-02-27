@@ -95,7 +95,7 @@ export default function AnalyticsPage() {
 
       {/* KPI cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="group relative overflow-hidden rounded-2xl border border-border-default bg-surface-sidebar p-5 transition-all duration-200 hover:border-border-strong">
+        <div className="group relative overflow-hidden rounded-2xl border border-border-default bg-surface-card p-5 transition-all duration-200 hover:border-border-strong">
           <div className="flex items-start justify-between">
             <div className="flex flex-col gap-2">
               <span className="text-xs font-medium uppercase tracking-widest text-text-dim">Ticket promedio</span>
@@ -107,7 +107,7 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        <div className="group relative overflow-hidden rounded-2xl border border-border-default bg-surface-sidebar p-5 transition-all duration-200 hover:border-border-strong">
+        <div className="group relative overflow-hidden rounded-2xl border border-border-default bg-surface-card p-5 transition-all duration-200 hover:border-border-strong">
           <div className="flex items-start justify-between">
             <div className="flex flex-col gap-2">
               <span className="text-xs font-medium uppercase tracking-widest text-text-dim">Tasa conversion</span>
@@ -119,7 +119,7 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        <div className="group relative overflow-hidden rounded-2xl border border-border-default bg-surface-sidebar p-5 transition-all duration-200 hover:border-border-strong">
+        <div className="group relative overflow-hidden rounded-2xl border border-border-default bg-surface-card p-5 transition-all duration-200 hover:border-border-strong">
           <div className="flex items-start justify-between">
             <div className="flex flex-col gap-2">
               <span className="text-xs font-medium uppercase tracking-widest text-text-dim">Reseñas</span>
@@ -139,7 +139,7 @@ export default function AnalyticsPage() {
           )}
         </div>
 
-        <div className="group relative overflow-hidden rounded-2xl border border-border-default bg-surface-sidebar p-5 transition-all duration-200 hover:border-border-strong">
+        <div className="group relative overflow-hidden rounded-2xl border border-border-default bg-surface-card p-5 transition-all duration-200 hover:border-border-strong">
           <div className="flex items-start justify-between">
             <div className="flex flex-col gap-2">
               <span className="text-xs font-medium uppercase tracking-widest text-text-dim">Compradores</span>
@@ -154,7 +154,7 @@ export default function AnalyticsPage() {
 
       {/* Followers growth chart */}
       {analytics.followersChart.length > 0 && (
-        <div className="rounded-2xl border border-border-default bg-surface-sidebar p-6">
+        <div className="rounded-2xl border border-border-default bg-surface-card p-6">
           <h3 className="mb-1 text-base font-semibold text-text-primary">Nuevos seguidores por mes</h3>
           <p className="mb-4 text-sm text-text-dim">Ultimos 6 meses</p>
           <ResponsiveContainer width="100%" height={250}>
@@ -170,7 +170,7 @@ export default function AnalyticsPage() {
       )}
 
       {/* Top products */}
-      <div className="rounded-2xl border border-border-default bg-surface-sidebar p-6">
+      <div className="rounded-2xl border border-border-default bg-surface-card p-6">
         <h3 className="mb-1 text-base font-semibold text-text-primary">Productos mas vendidos</h3>
         <p className="mb-4 text-sm text-text-dim">Top 5 por ingresos</p>
         {analytics.topProducts.length === 0 ? (
@@ -205,7 +205,7 @@ export default function AnalyticsPage() {
 
       {/* Referral stats */}
       {analytics.referralStats && (analytics.referralStats.totalClicks > 0 || analytics.referralStats.referredUsers > 0 || analytics.referralStats.pendingAmount > 0) && (
-        <div className="rounded-2xl border border-border-default bg-surface-sidebar p-6">
+        <div className="rounded-2xl border border-border-default bg-surface-card p-6">
           <h3 className="mb-1 text-base font-semibold text-text-primary">Referidos</h3>
           <p className="mb-4 text-sm text-text-dim">Rendimiento de tu enlace de referido</p>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

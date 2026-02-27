@@ -114,7 +114,7 @@ export default function DashboardReferidosPage() {
       </div>
 
       {!referral ? (
-        <div className="rounded-2xl border border-border-default bg-surface-sidebar p-12 text-center">
+        <div className="rounded-2xl border border-border-default bg-surface-card p-12 text-center">
           <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-navy-500/10">
             <Link2 className="h-8 w-8 text-navy-400" />
           </div>
@@ -135,7 +135,7 @@ export default function DashboardReferidosPage() {
       ) : (
         <>
           {/* Code & Link */}
-          <div className="rounded-2xl border border-border-default bg-surface-sidebar p-6">
+          <div className="rounded-2xl border border-border-default bg-surface-card p-6">
             <h3 className="mb-5 text-base font-semibold text-text-primary">Tu codigo de referido</h3>
             <div className="space-y-3">
               <div className="flex items-center gap-3">
@@ -183,7 +183,7 @@ export default function DashboardReferidosPage() {
             {statItems.map((stat) => (
               <div
                 key={stat.label}
-                className="group relative overflow-hidden rounded-2xl border border-border-default bg-surface-sidebar p-5 transition-all duration-200 hover:border-border-strong"
+                className="group relative overflow-hidden rounded-2xl border border-border-default bg-surface-card p-5 transition-all duration-200 hover:border-border-strong"
               >
                 <div
                   className={`pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full opacity-10 blur-2xl ${stat.iconBg}`}
@@ -209,7 +209,7 @@ export default function DashboardReferidosPage() {
 
           {/* Commissions Table */}
           {referral.commissions && referral.commissions.length > 0 && (
-            <div className="overflow-hidden rounded-2xl border border-border-default bg-surface-sidebar">
+            <div className="overflow-hidden rounded-2xl border border-border-default bg-surface-card">
               <div className="border-b border-border-default px-6 py-4">
                 <h3 className="text-base font-semibold text-text-primary">Historial de comisiones</h3>
                 <p className="mt-0.5 text-sm text-text-dim">

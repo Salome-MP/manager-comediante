@@ -91,7 +91,7 @@ interface StatCardProps {
 
 function StatCard({ label, value, icon: Icon, iconBg, iconColor }: StatCardProps) {
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-border-default bg-surface-sidebar p-5 transition-all duration-200 hover:border-border-strong hover:shadow-lg hover:shadow-[var(--shadow-color)]">
+    <div className="group relative overflow-hidden rounded-2xl border border-border-default bg-surface-card p-5 transition-all duration-200 hover:border-border-strong hover:shadow-lg hover:shadow-[var(--shadow-color)]">
       <div className={`pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full opacity-10 blur-2xl ${iconBg}`} />
       <div className="relative flex items-start justify-between">
         <div className="flex flex-col gap-3">
@@ -224,7 +224,7 @@ export default function ArtistVentasPage() {
       </div>
 
       {/* Chart section */}
-      <div className="rounded-2xl border border-border-default bg-surface-sidebar p-6">
+      <div className="rounded-2xl border border-border-default bg-surface-card p-6">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
             <h3 className="text-base font-semibold text-text-primary">Ventas por periodo</h3>
@@ -308,7 +308,7 @@ export default function ArtistVentasPage() {
       </div>
 
       {/* Sales detail table */}
-      <div className="overflow-hidden rounded-2xl border border-border-default bg-surface-sidebar">
+      <div className="overflow-hidden rounded-2xl border border-border-default bg-surface-card">
         <div className="border-b border-border-default px-6 py-4">
           <h3 className="text-base font-semibold text-text-primary">
             Detalle de ventas
@@ -422,7 +422,7 @@ export default function ArtistVentasPage() {
       </div>
 
       {/* Ticket sales detail table */}
-      <div className="overflow-hidden rounded-2xl border border-border-default bg-surface-sidebar">
+      <div className="overflow-hidden rounded-2xl border border-border-default bg-surface-card">
         <div className="border-b border-border-default px-6 py-4">
           <h3 className="text-base font-semibold text-text-primary">
             Entradas vendidas

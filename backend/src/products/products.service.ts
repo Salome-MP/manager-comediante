@@ -118,6 +118,38 @@ export class ProductsService {
     return [categoryId];
   }
 
+  async findAllAssignments(
+    page = 1,
+    limit = 20,
+    artistId?: string,
+    categoryId?: string,
+  ) {
+    const skip = (page - 1) * limit;
+
+    const where: Prisma.ArtistProductWhereInput = {};
+    if (artistId) where.artistId = artistId;
+    if (categoryId) {
+      const categoryIds = await this.resolveCategoryIds(categoryId);
+      where.product = { categoryId: { in: categoryIds } };
+    }
+
+    const [data, total] = await Promise.all([
+      this.prisma.artistProduct.findMany({
+        where,
+        skip,
+        take: limit,
+        include: {
+          product: { include: { category: true } },
+          artist: { select: { id: true, stageName: true, slug: true, profileImage: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.artistProduct.count({ where }),
+    ]);
+
+    return { data, total, page, limit };
+  }
+
   async findByArtist(
     artistId: string,
     page = 1,
@@ -186,6 +218,7 @@ export class ProductsService {
       isActive?: boolean;
       isFeatured?: boolean;
       publishAt?: string | null;
+      customImages?: string[];
     },
   ) {
     const artistProduct = await this.prisma.artistProduct.findUnique({

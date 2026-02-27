@@ -327,7 +327,7 @@ export default function DashboardPersonalizacionesPage() {
 
       {/* Tabs */}
       <Tabs defaultValue="pending">
-        <TabsList className="border border-border-default bg-surface-sidebar">
+        <TabsList className="border border-border-default bg-surface-card">
           <TabsTrigger
             value="pending"
             className="text-text-dim data-[state=active]:bg-navy-600/20 data-[state=active]:text-navy-600 dark:data-[state=active]:text-navy-300"
@@ -364,7 +364,7 @@ export default function DashboardPersonalizacionesPage() {
         {/* Pending tab — type-specific forms */}
         <TabsContent value="pending" className="mt-4">
           {pendingItems.length === 0 ? (
-            <div className="rounded-2xl border border-border-default bg-surface-sidebar p-12 text-center">
+            <div className="rounded-2xl border border-border-default bg-surface-card p-12 text-center">
               <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10">
                 <Check className="h-8 w-8 text-emerald-400" />
               </div>
@@ -391,7 +391,7 @@ export default function DashboardPersonalizacionesPage() {
         {/* Services tab */}
         <TabsContent value="services" className="mt-4">
           {customizations.length === 0 ? (
-            <div className="rounded-2xl border border-border-default bg-surface-sidebar p-12 text-center">
+            <div className="rounded-2xl border border-border-default bg-surface-card p-12 text-center">
               <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-navy-500/10">
                 <Gift className="h-8 w-8 text-navy-400" />
               </div>
@@ -406,7 +406,7 @@ export default function DashboardPersonalizacionesPage() {
                 return (
                   <div
                     key={c.id}
-                    className={`group relative overflow-hidden rounded-2xl border bg-surface-sidebar p-5 transition-all duration-200 hover:shadow-lg hover:shadow-[var(--shadow-color)] ${
+                    className={`group relative overflow-hidden rounded-2xl border bg-surface-card p-5 transition-all duration-200 hover:shadow-lg hover:shadow-[var(--shadow-color)] ${
                       c.isActive ? 'border-border-default hover:border-border-strong' : 'border-border-default/50 opacity-70'
                     }`}
                   >
@@ -509,7 +509,7 @@ export default function DashboardPersonalizacionesPage() {
         {/* History tab */}
         <TabsContent value="history" className="mt-4">
           {historyItems.length === 0 ? (
-            <div className="rounded-2xl border border-border-default bg-surface-sidebar p-12 text-center">
+            <div className="rounded-2xl border border-border-default bg-surface-card p-12 text-center">
               <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-navy-500/10">
                 <Clock className="h-8 w-8 text-navy-400" />
               </div>
@@ -575,7 +575,7 @@ export default function DashboardPersonalizacionesPage() {
         {/* Video call config tab */}
         {hasVideoCall && (
           <TabsContent value="videocall" className="mt-4">
-            <div className="rounded-2xl border border-border-default bg-surface-sidebar p-6">
+            <div className="rounded-2xl border border-border-default bg-surface-card p-6">
               <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
                 <Phone className="h-5 w-5 text-navy-400" /> Configuracion de videollamada
               </h3>
@@ -734,7 +734,7 @@ function PendingItemCard({
   };
 
   return (
-    <div className="rounded-xl border border-border-default bg-surface-sidebar p-4 transition-all hover:border-border-strong">
+    <div className="rounded-xl border border-border-default bg-surface-card p-4 transition-all hover:border-border-strong">
       <div className="flex items-start gap-3">
         <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-navy-500/10">
           <Icon className="h-5 w-5 text-navy-400" />

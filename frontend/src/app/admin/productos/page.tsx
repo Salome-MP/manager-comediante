@@ -84,7 +84,10 @@ interface ArtistProduct {
   salePrice: number;
   artistCommission: number;
   stock: number;
+  isActive: boolean;
+  customImages: string[];
   product: Product;
+  artist?: { id: string; stageName: string; slug: string; profileImage: string | null };
 }
 
 // ---------------------------------------------------------------------------
@@ -140,11 +143,7 @@ export default function ProductosPage() {
     isActive: true,
   });
   const [editId, setEditId] = useState<string | null>(null);
-  const [editImages, setEditImages] = useState<string[]>([]);
-  const [uploadingImage, setUploadingImage] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
-  const [createImageFiles, setCreateImageFiles] = useState<File[]>([]);
-  const [createImagePreviews, setCreateImagePreviews] = useState<string[]>([]);
 
   // ---- Tab 2: Asignar a Artista ----
   const [artists, setArtists] = useState<Artist[]>([]);
@@ -158,6 +157,23 @@ export default function ProductosPage() {
   const [productDropOpen, setProductDropOpen] = useState(false);
   const artistDropRef = useRef<HTMLDivElement>(null);
   const productDropRef = useRef<HTMLDivElement>(null);
+
+  // ---- Assign image upload ----
+  const [assignImageFiles, setAssignImageFiles] = useState<File[]>([]);
+  const [assignImagePreviews, setAssignImagePreviews] = useState<string[]>([]);
+
+  // ---- Tab 3: All assignments ----
+  const [allAssignments, setAllAssignments] = useState<ArtistProduct[]>([]);
+  const [totalAssignments, setTotalAssignments] = useState(0);
+  const [loadingAllAssignments, setLoadingAllAssignments] = useState(false);
+  const [assignFilterArtist, setAssignFilterArtist] = useState('all');
+  const [assignFilterCategory, setAssignFilterCategory] = useState('all');
+
+  // ---- Image management dialog ----
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [imageDialogTarget, setImageDialogTarget] = useState<ArtistProduct | null>(null);
+  const [imageDialogImages, setImageDialogImages] = useState<string[]>([]);
+  const [uploadingAssignImage, setUploadingAssignImage] = useState(false);
 
   // ---------------------------------------------------------------------------
   // Fetchers
@@ -211,12 +227,29 @@ export default function ProductosPage() {
     }
   }, []);
 
+  const fetchAllAssignments = useCallback(async (artistId?: string, categoryId?: string) => {
+    setLoadingAllAssignments(true);
+    try {
+      const params: Record<string, string> = { page: '1', limit: '200' };
+      if (artistId && artistId !== 'all') params.artistId = artistId;
+      if (categoryId && categoryId !== 'all') params.categoryId = categoryId;
+      const res = await api.get('/products/assignments', { params });
+      setAllAssignments(res.data.data ?? []);
+      setTotalAssignments(res.data.total ?? 0);
+    } catch {
+      toast.error('Error al cargar asignaciones');
+    } finally {
+      setLoadingAllAssignments(false);
+    }
+  }, []);
+
   // Initial data load
   useEffect(() => {
     fetchCategories();
     fetchProducts();
     fetchArtists();
-  }, [fetchCategories, fetchProducts, fetchArtists]);
+    fetchAllAssignments();
+  }, [fetchCategories, fetchProducts, fetchArtists, fetchAllAssignments]);
 
   // Reload artist assignments when selected artist changes
   useEffect(() => {
@@ -261,37 +294,10 @@ export default function ProductosPage() {
           }));
       }
 
-      const { data: created } = await api.post('/products', body);
-      const newProductId = created.id;
-
-      // Upload selected images
-      let uploadedCount = 0;
-      if (createImageFiles.length > 0 && newProductId) {
-        toast.info(`Subiendo ${createImageFiles.length} imagen(es)...`);
-        for (const file of createImageFiles) {
-          try {
-            const formData = new FormData();
-            formData.append('file', file);
-            await api.post(`/upload/product/${newProductId}/image`, formData, {
-              headers: { 'Content-Type': 'multipart/form-data' },
-            });
-            uploadedCount++;
-          } catch (uploadErr) {
-            console.error('Error uploading image:', uploadErr);
-            toast.error(`Error al subir imagen: ${file.name}`);
-          }
-        }
-      }
-
-      if (uploadedCount > 0) {
-        toast.success(`Producto creado con ${uploadedCount} imagen(es)`);
-      } else {
-        toast.success('Producto creado exitosamente');
-      }
+      await api.post('/products', body);
+      toast.success('Producto creado exitosamente');
       setCreateOpen(false);
       setCreateForm({ ...blankProductForm });
-      setCreateImageFiles([]);
-      setCreateImagePreviews([]);
       fetchProducts();
     } catch (err: unknown) {
       const message =
@@ -305,7 +311,6 @@ export default function ProductosPage() {
 
   const openEdit = (product: Product) => {
     setEditId(product.id);
-    setEditImages(product.images || []);
     setEditForm({
       name: product.name,
       description: product.description ?? '',
@@ -318,36 +323,6 @@ export default function ProductosPage() {
       isActive: product.isActive,
     });
     setEditOpen(true);
-  };
-
-  const handleUploadProductImage = async (file: File) => {
-    if (!editId) return;
-    setUploadingImage(true);
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const { data } = await api.post(`/upload/product/${editId}/image`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      setEditImages(prev => [...prev, data.url]);
-      toast.success('Imagen subida');
-    } catch {
-      toast.error('Error al subir imagen');
-    } finally {
-      setUploadingImage(false);
-    }
-  };
-
-  const handleRemoveProductImage = async (imageUrl: string) => {
-    if (!editId) return;
-    try {
-      const newImages = editImages.filter(img => img !== imageUrl);
-      await api.patch(`/products/${editId}`, { images: newImages });
-      setEditImages(newImages);
-      toast.success('Imagen eliminada');
-    } catch {
-      toast.error('Error al eliminar imagen');
-    }
   };
 
   const handleEdit = async () => {
@@ -430,14 +405,35 @@ export default function ProductosPage() {
 
     setAssignSaving(true);
     try {
-      await api.post('/products/assign', {
+      const { data: created } = await api.post('/products/assign', {
         artistId: assignForm.artistId,
         productId: assignForm.productId,
         salePrice: Number(assignForm.salePrice),
         artistCommission: Number(assignForm.artistCommission),
         stock: Number(assignForm.stock),
       });
-      toast.success('Producto asignado al artista');
+
+      // Upload images if any were selected
+      if (assignImageFiles.length > 0 && created.id) {
+        toast.info(`Subiendo ${assignImageFiles.length} imagen(es)...`);
+        for (const file of assignImageFiles) {
+          try {
+            const formData = new FormData();
+            formData.append('file', file);
+            await api.post(`/upload/artist-product/${created.id}/image`, formData, {
+              headers: { 'Content-Type': 'multipart/form-data' },
+            });
+          } catch {
+            toast.error(`Error al subir imagen: ${file.name}`);
+          }
+        }
+      }
+
+      toast.success(
+        assignImageFiles.length > 0
+          ? `Producto asignado con ${assignImageFiles.length} imagen(es)`
+          : 'Producto asignado al artista',
+      );
       setAssignForm((prev) => ({
         ...prev,
         productId: '',
@@ -446,8 +442,14 @@ export default function ProductosPage() {
         stock: 0,
       }));
       setProductSearch('');
-      // Refresh assignments list
+      setAssignImageFiles([]);
+      setAssignImagePreviews((prev) => {
+        prev.forEach((url) => URL.revokeObjectURL(url));
+        return [];
+      });
+      // Refresh assignments lists
       fetchArtistProducts(assignForm.artistId);
+      fetchAllAssignments(assignFilterArtist, assignFilterCategory);
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data
@@ -512,6 +514,12 @@ export default function ProductosPage() {
             className="text-text-dim data-[state=active]:bg-navy-600/20 data-[state=active]:text-navy-600 dark:text-navy-300"
           >
             Asignar a Artista
+          </TabsTrigger>
+          <TabsTrigger
+            value="asignaciones"
+            className="text-text-dim data-[state=active]:bg-navy-600/20 data-[state=active]:text-navy-600 dark:text-navy-300"
+          >
+            Asignaciones
           </TabsTrigger>
         </TabsList>
 
@@ -708,16 +716,7 @@ export default function ProductosPage() {
           })()}
 
           {/* ---- Create dialog ---- */}
-          <Dialog open={createOpen} onOpenChange={(open) => {
-            setCreateOpen(open);
-            if (!open) {
-              setCreateImageFiles([]);
-              setCreateImagePreviews((prev) => {
-                prev.forEach((url) => URL.revokeObjectURL(url));
-                return [];
-              });
-            }
-          }}>
+          <Dialog open={createOpen} onOpenChange={setCreateOpen}>
             <DialogContent className="sm:max-w-lg bg-surface-card border-border-strong text-text-primary">
               <DialogHeader>
                 <DialogTitle className="text-text-primary">Nuevo Producto</DialogTitle>
@@ -885,77 +884,12 @@ export default function ProductosPage() {
                   )}
                 </div>
 
-                {/* Images for new product */}
-                <div className="grid gap-2">
-                  <Label className={labelClass}>Imagenes del producto</Label>
-                  {createImagePreviews.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {createImagePreviews.map((preview, idx) => (
-                        <div
-                          key={idx}
-                          className="group relative h-20 w-20 overflow-hidden rounded-lg border border-border-strong"
-                        >
-                          <img
-                            src={preview}
-                            alt={`Preview ${idx + 1}`}
-                            className="h-full w-full object-cover"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setCreateImageFiles((prev) => prev.filter((_, i) => i !== idx));
-                              setCreateImagePreviews((prev) => {
-                                URL.revokeObjectURL(prev[idx]);
-                                return prev.filter((_, i) => i !== idx);
-                              });
-                            }}
-                            className="absolute right-0.5 top-0.5 rounded-md bg-red-500/90 p-0.5 text-white opacity-0 transition-opacity group-hover:opacity-100"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  <div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      id="create-product-image-upload"
-                      hidden
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) {
-                          setCreateImageFiles((prev) => [...prev, file]);
-                          setCreateImagePreviews((prev) => [...prev, URL.createObjectURL(file)]);
-                        }
-                        e.target.value = '';
-                      }}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => document.getElementById('create-product-image-upload')?.click()}
-                      className="border border-border-strong text-text-secondary hover:bg-overlay-light hover:text-text-primary"
-                    >
-                      <Upload className="mr-2 h-4 w-4" /> Agregar imagen
-                    </Button>
-                  </div>
-                </div>
               </div>
 
               <DialogFooter>
                 <Button
                   variant="ghost"
-                  onClick={() => {
-                    setCreateOpen(false);
-                    setCreateImageFiles([]);
-                    setCreateImagePreviews((prev) => {
-                      prev.forEach((url) => URL.revokeObjectURL(url));
-                      return [];
-                    });
-                  }}
+                  onClick={() => setCreateOpen(false)}
                   disabled={saving}
                   className="text-text-secondary hover:bg-overlay-light hover:text-text-primary"
                 >
@@ -1165,62 +1099,6 @@ export default function ProductosPage() {
                   </button>
                 </div>
 
-                {/* Product Images */}
-                <div className="grid gap-2">
-                  <Label className={labelClass}>Imagenes del producto</Label>
-                  {editImages.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {editImages.map((img, idx) => (
-                        <div
-                          key={idx}
-                          className="group relative h-20 w-20 overflow-hidden rounded-lg border border-border-strong"
-                        >
-                          <img
-                            src={img}
-                            alt={`Producto ${idx + 1}`}
-                            className="h-full w-full object-cover"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveProductImage(img)}
-                            className="absolute right-0.5 top-0.5 rounded-md bg-red-500/90 p-0.5 text-white opacity-0 transition-opacity group-hover:opacity-100"
-                          >
-                            <X className="h-3 w-3" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-sm text-text-ghost">Sin imagenes</p>
-                  )}
-                  <div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      id="product-image-upload"
-                      hidden
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handleUploadProductImage(file);
-                        e.target.value = '';
-                      }}
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => document.getElementById('product-image-upload')?.click()}
-                      disabled={uploadingImage}
-                      className="border border-border-strong text-text-secondary hover:bg-overlay-light hover:text-text-primary"
-                    >
-                      {uploadingImage ? (
-                        <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Subiendo...</>
-                      ) : (
-                        <><Upload className="mr-2 h-4 w-4" /> Subir imagen</>
-                      )}
-                    </Button>
-                  </div>
-                </div>
               </div>
 
               <DialogFooter>
@@ -1440,6 +1318,62 @@ export default function ProductosPage() {
               </div>
             </div>
 
+            {/* Assign image upload */}
+            <div className="mt-4 grid gap-2">
+              <Label className={labelClass}>Imagenes personalizadas del artista</Label>
+              <p className="text-xs text-text-dim">Sube fotos del producto con el diseño del artista (opcional)</p>
+              {assignImagePreviews.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {assignImagePreviews.map((preview, idx) => (
+                    <div
+                      key={idx}
+                      className="group relative h-20 w-20 overflow-hidden rounded-lg border border-border-strong"
+                    >
+                      <img src={preview} alt={`Preview ${idx + 1}`} className="h-full w-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAssignImageFiles((prev) => prev.filter((_, i) => i !== idx));
+                          setAssignImagePreviews((prev) => {
+                            URL.revokeObjectURL(prev[idx]);
+                            return prev.filter((_, i) => i !== idx);
+                          });
+                        }}
+                        className="absolute right-0.5 top-0.5 rounded-md bg-red-500/90 p-0.5 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  id="assign-image-upload"
+                  hidden
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      setAssignImageFiles((prev) => [...prev, file]);
+                      setAssignImagePreviews((prev) => [...prev, URL.createObjectURL(file)]);
+                    }
+                    e.target.value = '';
+                  }}
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => document.getElementById('assign-image-upload')?.click()}
+                  className="border border-border-strong text-text-secondary hover:bg-overlay-light hover:text-text-primary"
+                >
+                  <Upload className="mr-2 h-4 w-4" /> Agregar imagen
+                </Button>
+              </div>
+            </div>
+
             <div className="mt-6">
               <Button
                 onClick={handleAssign}
@@ -1468,15 +1402,17 @@ export default function ProductosPage() {
                 <TableHeader>
                   <TableRow className="border-border-default hover:bg-transparent">
                     <TableHead className="text-text-dim font-medium">Producto</TableHead>
+                    <TableHead className="text-text-dim font-medium">Categoria</TableHead>
                     <TableHead className="text-right text-text-dim font-medium">Precio Venta</TableHead>
-                    <TableHead className="text-right text-text-dim font-medium">Comision (%)</TableHead>
                     <TableHead className="text-right text-text-dim font-medium">Stock</TableHead>
+                    <TableHead className="text-text-dim font-medium">Estado</TableHead>
+                    <TableHead className="text-right text-text-dim font-medium">Imagenes</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loadingAssignments ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="py-10 text-center">
+                      <TableCell colSpan={6} className="py-10 text-center">
                         <div className="flex items-center justify-center gap-2 text-text-dim">
                           <Loader2 className="h-4 w-4 animate-spin" />
                           <span className="text-sm">Cargando asignaciones...</span>
@@ -1485,32 +1421,72 @@ export default function ProductosPage() {
                     </TableRow>
                   ) : artistProducts.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="py-10 text-center">
+                      <TableCell colSpan={6} className="py-10 text-center">
                         <span className="text-sm text-text-dim">
                           Este artista no tiene productos asignados
                         </span>
                       </TableCell>
                     </TableRow>
                   ) : (
-                    artistProducts.map((ap) => (
-                      <TableRow
-                        key={ap.id}
-                        className="border-border-subtle hover:bg-surface-card transition-colors"
-                      >
-                        <TableCell className="font-medium text-text-primary">
-                          {ap.product?.name ?? '-'}
-                        </TableCell>
-                        <TableCell className="text-right text-text-secondary">
-                          {fmt(ap.salePrice)}
-                        </TableCell>
-                        <TableCell className="text-right text-text-secondary">
-                          {ap.artistCommission}%
-                        </TableCell>
-                        <TableCell className="text-right text-text-secondary">
-                          {ap.stock}
-                        </TableCell>
-                      </TableRow>
-                    ))
+                    artistProducts.map((ap) => {
+                      const thumb = ap.customImages?.[0] || ap.product?.images?.[0];
+                      return (
+                        <TableRow
+                          key={ap.id}
+                          className="border-border-subtle hover:bg-surface-card transition-colors"
+                        >
+                          <TableCell className="font-medium text-text-primary">
+                            <div className="flex items-center gap-3">
+                              {thumb ? (
+                                <img src={thumb} alt="" className="h-9 w-9 rounded-lg object-cover ring-1 ring-border-medium" />
+                              ) : (
+                                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-overlay-light ring-1 ring-border-strong">
+                                  <ImageIcon className="h-4 w-4 text-text-ghost" />
+                                </div>
+                              )}
+                              <span>{ap.product?.name ?? '-'}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="rounded-md bg-overlay-light px-2 py-0.5 text-xs text-text-dim">
+                              {ap.product?.category?.name ?? '-'}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right text-text-secondary">
+                            {fmt(ap.salePrice)}
+                          </TableCell>
+                          <TableCell className="text-right text-text-secondary">
+                            {ap.stock}
+                          </TableCell>
+                          <TableCell>
+                            {ap.isActive !== false ? (
+                              <span className="inline-flex items-center rounded-lg bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-400 ring-1 ring-inset ring-emerald-500/20">
+                                Activo
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center rounded-lg bg-muted px-2.5 py-1 text-xs font-medium text-text-muted ring-1 ring-inset ring-border-medium">
+                                Inactivo
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 text-text-dim hover:bg-overlay-light hover:text-text-primary transition-colors"
+                              onClick={() => {
+                                setImageDialogTarget(ap);
+                                setImageDialogImages(ap.customImages || []);
+                                setImageDialogOpen(true);
+                              }}
+                            >
+                              <ImageIcon className="mr-1 h-4 w-4" />
+                              {(ap.customImages?.length || 0)}
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                   )}
                 </TableBody>
               </Table>
@@ -1518,7 +1494,305 @@ export default function ProductosPage() {
             </div>
           )}
         </TabsContent>
+
+        {/* ================================================================ */}
+        {/* TAB 3 - Asignaciones (todas)                                    */}
+        {/* ================================================================ */}
+        <TabsContent value="asignaciones" className="space-y-4 mt-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-text-dim">
+              {totalAssignments} asignacion{totalAssignments !== 1 ? 'es' : ''} en total
+            </p>
+          </div>
+
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Select
+              value={assignFilterArtist}
+              onValueChange={(val) => {
+                setAssignFilterArtist(val);
+                fetchAllAssignments(val, assignFilterCategory);
+              }}
+            >
+              <SelectTrigger className={`w-full sm:w-56 ${inputClass}`}>
+                <SelectValue placeholder="Todos los artistas" />
+              </SelectTrigger>
+              <SelectContent className="bg-surface-card border-border-strong text-text-primary">
+                <SelectItem value="all" className="focus:bg-overlay-light focus:text-text-primary">Todos los artistas</SelectItem>
+                {artists.map((a) => (
+                  <SelectItem key={a.id} value={a.id} className="focus:bg-overlay-light focus:text-text-primary">
+                    {a.stageName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={assignFilterCategory}
+              onValueChange={(val) => {
+                setAssignFilterCategory(val);
+                fetchAllAssignments(assignFilterArtist, val);
+              }}
+            >
+              <SelectTrigger className={`w-full sm:w-48 ${inputClass}`}>
+                <SelectValue placeholder="Todas las categorias" />
+              </SelectTrigger>
+              <SelectContent className="bg-surface-card border-border-strong text-text-primary">
+                <SelectItem value="all" className="focus:bg-overlay-light focus:text-text-primary">Todas las categorias</SelectItem>
+                {categories.map((cat) =>
+                  cat.children && cat.children.length > 0 ? (
+                    <div key={cat.id}>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-text-dim uppercase tracking-wider">
+                        {cat.name}
+                      </div>
+                      {cat.children.map((sub) => (
+                        <SelectItem key={sub.id} value={sub.id} className="pl-6 focus:bg-overlay-light focus:text-text-primary">
+                          {sub.name}
+                        </SelectItem>
+                      ))}
+                    </div>
+                  ) : (
+                    <SelectItem key={cat.id} value={cat.id} className="focus:bg-overlay-light focus:text-text-primary">
+                      {cat.name}
+                    </SelectItem>
+                  ),
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* All assignments table */}
+          <div className="overflow-hidden rounded-xl border border-border-default bg-surface-card">
+            <div className="overflow-x-auto">
+              <Table className="min-w-[800px]">
+                <TableHeader>
+                  <TableRow className="border-border-default hover:bg-transparent">
+                    <TableHead className="text-text-dim font-medium">Producto</TableHead>
+                    <TableHead className="text-text-dim font-medium">Artista</TableHead>
+                    <TableHead className="text-text-dim font-medium">Categoria</TableHead>
+                    <TableHead className="text-right text-text-dim font-medium">Precio</TableHead>
+                    <TableHead className="text-right text-text-dim font-medium">Stock</TableHead>
+                    <TableHead className="text-text-dim font-medium">Estado</TableHead>
+                    <TableHead className="text-right text-text-dim font-medium">Imagenes</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loadingAllAssignments ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="py-10 text-center">
+                        <div className="flex items-center justify-center gap-2 text-text-dim">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          <span className="text-sm">Cargando asignaciones...</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : allAssignments.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="py-14 text-center">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <ShoppingBag className="h-8 w-8 text-text-ghost" />
+                          <span className="text-sm text-text-dim">No hay asignaciones</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    allAssignments.map((ap) => {
+                      const thumb = ap.customImages?.[0] || ap.product?.images?.[0];
+                      return (
+                        <TableRow key={ap.id} className="border-border-subtle hover:bg-surface-card transition-colors">
+                          <TableCell className="font-medium text-text-primary">
+                            <div className="flex items-center gap-3">
+                              {thumb ? (
+                                <img src={thumb} alt="" className="h-9 w-9 rounded-lg object-cover ring-1 ring-border-medium" />
+                              ) : (
+                                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-overlay-light ring-1 ring-border-strong">
+                                  <ImageIcon className="h-4 w-4 text-text-ghost" />
+                                </div>
+                              )}
+                              <span>{ap.product?.name ?? '-'}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-text-secondary">
+                            {ap.artist?.stageName ?? '-'}
+                          </TableCell>
+                          <TableCell>
+                            <span className="rounded-md bg-overlay-light px-2 py-0.5 text-xs text-text-dim">
+                              {ap.product?.category?.name ?? '-'}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right text-text-secondary">
+                            {fmt(ap.salePrice)}
+                          </TableCell>
+                          <TableCell className="text-right text-text-secondary">
+                            {ap.stock}
+                          </TableCell>
+                          <TableCell>
+                            {ap.isActive !== false ? (
+                              <span className="inline-flex items-center rounded-lg bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-400 ring-1 ring-inset ring-emerald-500/20">
+                                Activo
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center rounded-lg bg-muted px-2.5 py-1 text-xs font-medium text-text-muted ring-1 ring-inset ring-border-medium">
+                                Inactivo
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 text-text-dim hover:bg-overlay-light hover:text-text-primary transition-colors"
+                              onClick={() => {
+                                setImageDialogTarget(ap);
+                                setImageDialogImages(ap.customImages || []);
+                                setImageDialogOpen(true);
+                              }}
+                            >
+                              <ImageIcon className="mr-1 h-4 w-4" />
+                              {(ap.customImages?.length || 0)}
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        </TabsContent>
       </Tabs>
+
+      {/* ================================================================ */}
+      {/* Image Management Dialog                                          */}
+      {/* ================================================================ */}
+      <Dialog
+        open={imageDialogOpen}
+        onOpenChange={(open) => {
+          setImageDialogOpen(open);
+          if (!open) {
+            setImageDialogTarget(null);
+            setImageDialogImages([]);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-lg bg-surface-card border-border-strong text-text-primary">
+          <DialogHeader>
+            <DialogTitle className="text-text-primary">Gestionar Imagenes</DialogTitle>
+            <DialogDescription className="text-text-dim">
+              Imagenes personalizadas de{' '}
+              <span className="font-semibold text-text-primary">{imageDialogTarget?.product?.name}</span>
+              {imageDialogTarget?.artist && (
+                <> para <span className="font-semibold text-text-primary">{imageDialogTarget.artist.stageName}</span></>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="grid gap-4 py-2">
+            {imageDialogImages.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {imageDialogImages.map((img, idx) => (
+                  <div
+                    key={idx}
+                    className="group relative h-24 w-24 overflow-hidden rounded-lg border border-border-strong"
+                  >
+                    <img src={img} alt={`Imagen ${idx + 1}`} className="h-full w-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!imageDialogTarget) return;
+                        const newImages = imageDialogImages.filter((_, i) => i !== idx);
+                        try {
+                          await api.patch(`/products/artist-product/${imageDialogTarget.id}`, {
+                            customImages: newImages,
+                          });
+                          setImageDialogImages(newImages);
+                          toast.success('Imagen eliminada');
+                          // Update local state
+                          setArtistProducts((prev) =>
+                            prev.map((ap) => ap.id === imageDialogTarget.id ? { ...ap, customImages: newImages } : ap),
+                          );
+                          setAllAssignments((prev) =>
+                            prev.map((ap) => ap.id === imageDialogTarget.id ? { ...ap, customImages: newImages } : ap),
+                          );
+                        } catch {
+                          toast.error('Error al eliminar imagen');
+                        }
+                      }}
+                      className="absolute right-0.5 top-0.5 rounded-md bg-red-500/90 p-0.5 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-text-ghost">Sin imagenes personalizadas</p>
+            )}
+
+            <div>
+              <input
+                type="file"
+                accept="image/*"
+                id="assign-product-image-upload"
+                hidden
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file || !imageDialogTarget) return;
+                  e.target.value = '';
+                  setUploadingAssignImage(true);
+                  try {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    const { data } = await api.post(
+                      `/upload/artist-product/${imageDialogTarget.id}/image`,
+                      formData,
+                      { headers: { 'Content-Type': 'multipart/form-data' } },
+                    );
+                    const newImages = [...imageDialogImages, data.url];
+                    setImageDialogImages(newImages);
+                    toast.success('Imagen subida');
+                    // Update local state
+                    setArtistProducts((prev) =>
+                      prev.map((ap) => ap.id === imageDialogTarget.id ? { ...ap, customImages: newImages } : ap),
+                    );
+                    setAllAssignments((prev) =>
+                      prev.map((ap) => ap.id === imageDialogTarget.id ? { ...ap, customImages: newImages } : ap),
+                    );
+                  } catch {
+                    toast.error('Error al subir imagen');
+                  } finally {
+                    setUploadingAssignImage(false);
+                  }
+                }}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => document.getElementById('assign-product-image-upload')?.click()}
+                disabled={uploadingAssignImage}
+                className="border border-border-strong text-text-secondary hover:bg-overlay-light hover:text-text-primary"
+              >
+                {uploadingAssignImage ? (
+                  <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Subiendo...</>
+                ) : (
+                  <><Upload className="mr-2 h-4 w-4" /> Subir imagen</>
+                )}
+              </Button>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setImageDialogOpen(false)}
+              className="text-text-secondary hover:bg-overlay-light hover:text-text-primary"
+            >
+              Cerrar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

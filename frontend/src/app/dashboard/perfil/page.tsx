@@ -190,7 +190,7 @@ export default function ArtistPerfilPage() {
       {/* Images Upload Section */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Profile Image */}
-        <div className="rounded-2xl border border-border-default bg-surface-sidebar p-5">
+        <div className="rounded-2xl border border-border-default bg-surface-card p-5">
           <h3 className="mb-4 text-sm font-semibold text-text-primary">Foto de perfil</h3>
           <div className="flex items-center gap-4">
             <div className="flex h-20 w-20 flex-shrink-0 items-center justify-center overflow-hidden rounded-full border-2 border-border-strong bg-overlay-light">
@@ -227,7 +227,7 @@ export default function ArtistPerfilPage() {
         </div>
 
         {/* Banner Image */}
-        <div className="rounded-2xl border border-border-default bg-surface-sidebar p-5">
+        <div className="rounded-2xl border border-border-default bg-surface-card p-5">
           <h3 className="mb-4 text-sm font-semibold text-text-primary">Banner / Portada</h3>
           <div className="mb-3 h-28 w-full overflow-hidden rounded-xl border border-border-medium bg-overlay-light">
             {profile.bannerImage ? (
@@ -262,7 +262,7 @@ export default function ArtistPerfilPage() {
       </div>
 
       {/* Gallery */}
-      <div className="rounded-2xl border border-border-default bg-surface-sidebar p-5">
+      <div className="rounded-2xl border border-border-default bg-surface-card p-5">
         <div className="mb-4 flex items-center justify-between">
           <div>
             <h3 className="text-sm font-semibold text-text-primary">Galeria</h3>
@@ -319,7 +319,7 @@ export default function ArtistPerfilPage() {
       {/* Edit Form */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Main form */}
-        <div className="rounded-2xl border border-border-default bg-surface-sidebar p-5 lg:col-span-2">
+        <div className="rounded-2xl border border-border-default bg-surface-card p-5 lg:col-span-2">
           <h3 className="mb-5 text-sm font-semibold text-text-primary">Informacion del Artista</h3>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -429,7 +429,7 @@ export default function ArtistPerfilPage() {
         </div>
 
         {/* Summary sidebar */}
-        <div className="rounded-2xl border border-border-default bg-surface-sidebar p-5">
+        <div className="rounded-2xl border border-border-default bg-surface-card p-5">
           <h3 className="mb-5 text-sm font-semibold text-text-primary">Resumen</h3>
           <div className="space-y-4">
             <div>

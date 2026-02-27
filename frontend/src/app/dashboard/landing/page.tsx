@@ -146,7 +146,7 @@ export default function LandingConfigPage() {
         {/* Settings */}
         <div className="space-y-6">
           {/* Color scheme */}
-          <div className="rounded-2xl border border-border-default bg-surface-sidebar p-5 space-y-4">
+          <div className="rounded-2xl border border-border-default bg-surface-card p-5 space-y-4">
             <h3 className="flex items-center gap-2 text-sm font-semibold text-text-primary">
               <Palette className="h-4 w-4 text-navy-400" />
               Esquema de colores
@@ -227,7 +227,7 @@ export default function LandingConfigPage() {
           </div>
 
           {/* Layout */}
-          <div className="rounded-2xl border border-border-default bg-surface-sidebar p-5 space-y-4">
+          <div className="rounded-2xl border border-border-default bg-surface-card p-5 space-y-4">
             <h3 className="text-sm font-semibold text-text-primary">Diseno</h3>
 
             <div className="space-y-2">
@@ -282,7 +282,7 @@ export default function LandingConfigPage() {
           </div>
 
           {/* Sections visibility */}
-          <div className="rounded-2xl border border-border-default bg-surface-sidebar p-5 space-y-4">
+          <div className="rounded-2xl border border-border-default bg-surface-card p-5 space-y-4">
             <h3 className="text-sm font-semibold text-text-primary">Secciones visibles</h3>
             <div className="space-y-3">
               {([
@@ -375,7 +375,7 @@ export default function LandingConfigPage() {
                   {/* Product cards */}
                   <div className="grid grid-cols-2 gap-1.5">
                     {[1, 2, 3, 4].map((i) => (
-                      <div key={i} className="rounded-md bg-surface-cardborder border-border-default overflow-hidden">
+                      <div key={i} className="rounded-md bg-surface-card border border-border-default overflow-hidden">
                         <div className="aspect-square bg-muted" />
                         <div className="p-1.5 space-y-0.5">
                           <div className="h-1.5 w-full rounded bg-muted" />
