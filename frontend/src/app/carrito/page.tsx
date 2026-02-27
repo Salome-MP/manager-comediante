@@ -22,9 +22,10 @@ const customizationLabels: Record<string, string> = {
 
 export default function CarritoPage() {
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, loadFromStorage } = useAuthStore();
   const { cart, fetchCart, updateQuantity, removeItem, clearCart, itemCount } = useCartStore();
 
+  const [hydrated, setHydrated] = useState(false);
   const [couponCode, setCouponCode] = useState('');
   const [couponApplied, setCouponApplied] = useState<{ code: string; discount: number; couponId: string } | null>(null);
   const [validatingCoupon, setValidatingCoupon] = useState(false);
@@ -52,12 +53,18 @@ export default function CarritoPage() {
   };
 
   useEffect(() => {
+    loadFromStorage();
+    setHydrated(true);
+  }, [loadFromStorage]);
+
+  useEffect(() => {
+    if (!hydrated) return;
     if (!user) {
       router.replace('/login');
       return;
     }
     fetchCart();
-  }, [user, router, fetchCart]);
+  }, [hydrated, user, router, fetchCart]);
 
   if (!user) return null;
 

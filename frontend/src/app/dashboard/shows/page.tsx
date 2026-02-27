@@ -24,7 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Plus, XCircle, Eye, Ticket, CalendarDays, Pencil, Image as ImageIcon, Upload, Trash2, Loader2, Search, X } from 'lucide-react';
+import { Plus, XCircle, Eye, Ticket, CalendarDays, Pencil, Image as ImageIcon, Upload, Search, X } from 'lucide-react';
 
 interface Show {
   id: string;
@@ -34,6 +34,7 @@ interface Show {
   venue: string;
   city?: string;
   date: string;
+  image?: string;
   ticketPrice?: number;
   platformFee?: number;
   totalCapacity?: number;
@@ -91,12 +92,17 @@ export default function ArtistShowsPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  const [createImageFile, setCreateImageFile] = useState<File | null>(null);
+  const [createImagePreview, setCreateImagePreview] = useState<string | null>(null);
 
   // Edit dialog state
   const [editOpen, setEditOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editForm, setEditForm] = useState(emptyForm);
   const [editShowId, setEditShowId] = useState<string | null>(null);
+  const [editImageFile, setEditImageFile] = useState<File | null>(null);
+  const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
+  const [editCurrentImage, setEditCurrentImage] = useState<string | null>(null);
 
   // Ticket viewers dialog state
   const [ticketsOpen, setTicketsOpen] = useState(false);
@@ -104,13 +110,6 @@ export default function ArtistShowsPage() {
   const [tickets, setTickets] = useState<TicketBuyer[]>([]);
   const [selectedShowName, setSelectedShowName] = useState('');
 
-  // Gallery dialog state
-  const [galleryOpen, setGalleryOpen] = useState(false);
-  const [galleryShowId, setGalleryShowId] = useState<string | null>(null);
-  const [galleryShowName, setGalleryShowName] = useState('');
-  const [galleryPhotos, setGalleryPhotos] = useState<{ id: string; url: string }[]>([]);
-  const [galleryLoading, setGalleryLoading] = useState(false);
-  const [uploading, setUploading] = useState(false);
 
   const fetchShows = useCallback(async () => {
     if (!user?.artistId) return;
@@ -141,6 +140,14 @@ export default function ArtistShowsPage() {
   const update = (field: string, value: string | boolean) =>
     setForm((prev) => ({ ...prev, [field]: value }));
 
+  const uploadShowCover = async (showId: string, file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    await api.post(`/upload/show/${showId}/image`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  };
+
   const handleCreate = async () => {
     if (!user?.artistId) return;
     if (!form.name || !form.venue || !form.date) {
@@ -150,7 +157,7 @@ export default function ArtistShowsPage() {
 
     setCreating(true);
     try {
-      await api.post('/shows', {
+      const { data } = await api.post('/shows', {
         artistId: user.artistId,
         name: form.name,
         description: form.description || undefined,
@@ -162,9 +169,16 @@ export default function ArtistShowsPage() {
         ticketsEnabled: form.ticketsEnabled,
         publishAt: form.publishAt ? new Date(form.publishAt).toISOString() : undefined,
       });
+
+      if (createImageFile && data.id) {
+        await uploadShowCover(data.id, createImageFile);
+      }
+
       toast.success('Show creado exitosamente');
       setCreateOpen(false);
       setForm(emptyForm);
+      setCreateImageFile(null);
+      setCreateImagePreview(null);
       fetchShows();
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string } } };
@@ -198,6 +212,9 @@ export default function ArtistShowsPage() {
       ticketsEnabled: show.ticketsEnabled,
       publishAt: '',
     });
+    setEditCurrentImage(show.image || null);
+    setEditImageFile(null);
+    setEditImagePreview(null);
     setEditOpen(true);
   };
 
@@ -219,6 +236,11 @@ export default function ArtistShowsPage() {
         totalCapacity: editForm.totalCapacity ? parseInt(editForm.totalCapacity) : undefined,
         ticketsEnabled: editForm.ticketsEnabled,
       });
+
+      if (editImageFile) {
+        await uploadShowCover(editShowId, editImageFile);
+      }
+
       toast.success('Show actualizado');
       setEditOpen(false);
       fetchShows();
@@ -245,62 +267,6 @@ export default function ArtistShowsPage() {
       toast.error('Error al cargar las entradas');
     } finally {
       setTicketsLoading(false);
-    }
-  };
-
-  const handleOpenGallery = async (show: Show) => {
-    if (!user?.artistId) return;
-    setGalleryShowId(show.id);
-    setGalleryShowName(show.name);
-    setGalleryOpen(true);
-    setGalleryLoading(true);
-    setGalleryPhotos([]);
-    try {
-      const { data } = await api.get(`/shows/${show.id}`);
-      const photos = (data.mediaItems || [])
-        .filter((m: { type: string; url?: string }) => m.type === 'image' && m.url)
-        .map((m: { id: string; url: string }) => ({ id: m.id, url: m.url }));
-      setGalleryPhotos(photos);
-    } catch {
-      toast.error('Error al cargar las fotos');
-    } finally {
-      setGalleryLoading(false);
-    }
-  };
-
-  const handleUploadGalleryPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!user?.artistId || !galleryShowId) return;
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-    setUploading(true);
-    try {
-      for (const file of Array.from(files)) {
-        const formData = new FormData();
-        formData.append('file', file);
-        const { data } = await api.post(
-          `/upload/artist/${user.artistId}/show/${galleryShowId}/gallery`,
-          formData,
-          { headers: { 'Content-Type': 'multipart/form-data' } }
-        );
-        setGalleryPhotos(prev => [...prev, { id: data.id, url: data.url }]);
-      }
-      toast.success('Fotos subidas exitosamente');
-    } catch {
-      toast.error('Error al subir las fotos');
-    } finally {
-      setUploading(false);
-      e.target.value = '';
-    }
-  };
-
-  const handleDeleteGalleryPhoto = async (mediaItemId: string) => {
-    if (!user?.artistId) return;
-    try {
-      await api.delete(`/artists/${user.artistId}/gallery/${mediaItemId}`);
-      setGalleryPhotos(prev => prev.filter(p => p.id !== mediaItemId));
-      toast.success('Foto eliminada');
-    } catch {
-      toast.error('Error al eliminar la foto');
     }
   };
 
@@ -357,6 +323,40 @@ export default function ArtistShowsPage() {
                   rows={3}
                   className="border-border-strong bg-overlay-light text-text-primary placeholder:text-text-ghost focus:border-navy-500 focus:ring-navy-500/20"
                 />
+              </div>
+              {/* Cover image */}
+              <div className="space-y-2">
+                <Label className="text-xs font-medium text-text-dim">Imagen de portada</Label>
+                {createImagePreview ? (
+                  <div className="relative">
+                    <img src={createImagePreview} alt="Portada" className="h-40 w-full rounded-xl border border-border-default object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => { setCreateImageFile(null); setCreateImagePreview(null); }}
+                      className="absolute right-2 top-2 rounded-lg bg-black/60 p-1.5 text-white hover:bg-black/80"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="flex h-32 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-border-strong bg-overlay-light transition-colors hover:border-navy-500/50 hover:bg-overlay-hover">
+                    <Upload className="mb-2 h-6 w-6 text-text-ghost" />
+                    <span className="text-sm text-text-dim">Click para subir imagen</span>
+                    <span className="text-[11px] text-text-ghost">JPG, PNG. Se mostrara en la pagina del show</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setCreateImageFile(file);
+                          setCreateImagePreview(URL.createObjectURL(file));
+                        }
+                      }}
+                    />
+                  </label>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -524,7 +524,20 @@ export default function ArtistShowsPage() {
                     key={show.id}
                     className="border-border-default transition-colors hover:bg-overlay-subtle"
                   >
-                    <TableCell className="font-medium text-text-primary">{show.name}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="h-10 w-14 flex-shrink-0 overflow-hidden rounded-lg border border-border-default bg-overlay-light">
+                          {show.image ? (
+                            <img src={show.image} alt="" className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center">
+                              <ImageIcon className="h-4 w-4 text-text-ghost" />
+                            </div>
+                          )}
+                        </div>
+                        <span className="font-medium text-text-primary">{show.name}</span>
+                      </div>
+                    </TableCell>
                     <TableCell className="text-text-dim">
                       {new Date(show.date).toLocaleDateString('es-PE', {
                         day: '2-digit',
@@ -589,17 +602,6 @@ export default function ArtistShowsPage() {
                         >
                           <Eye className="h-3.5 w-3.5" />
                         </Button>
-                        {isShowPast(show) && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleOpenGallery(show)}
-                            title="Galeria de fotos"
-                            className="h-8 w-8 text-text-dim hover:bg-emerald-500/10 hover:text-emerald-400"
-                          >
-                            <ImageIcon className="h-3.5 w-3.5" />
-                          </Button>
-                        )}
                         {show.status === 'SCHEDULED' && (
                           <>
                             <Button
@@ -656,6 +658,49 @@ export default function ArtistShowsPage() {
                 rows={3}
                 className="border-border-strong bg-overlay-light text-text-primary placeholder:text-text-ghost focus:border-navy-500 focus:ring-navy-500/20"
               />
+            </div>
+            {/* Cover image */}
+            <div className="space-y-2">
+              <Label className="text-xs font-medium text-text-dim">Imagen de portada</Label>
+              {(editImagePreview || editCurrentImage) ? (
+                <div className="relative">
+                  <img src={editImagePreview || editCurrentImage!} alt="Portada" className="h-40 w-full rounded-xl border border-border-default object-cover" />
+                  <div className="absolute right-2 top-2 flex gap-1.5">
+                    <label className="cursor-pointer rounded-lg bg-black/60 p-1.5 text-white hover:bg-black/80">
+                      <Pencil className="h-4 w-4" />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setEditImageFile(file);
+                            setEditImagePreview(URL.createObjectURL(file));
+                          }
+                        }}
+                      />
+                    </label>
+                  </div>
+                </div>
+              ) : (
+                <label className="flex h-32 cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed border-border-strong bg-overlay-light transition-colors hover:border-navy-500/50 hover:bg-overlay-hover">
+                  <Upload className="mb-2 h-6 w-6 text-text-ghost" />
+                  <span className="text-sm text-text-dim">Click para subir imagen</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setEditImageFile(file);
+                        setEditImagePreview(URL.createObjectURL(file));
+                      }
+                    }}
+                  />
+                </label>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
@@ -725,69 +770,6 @@ export default function ArtistShowsPage() {
               {editing ? 'Guardando...' : 'Guardar cambios'}
             </Button>
           </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Show Gallery Dialog */}
-      <Dialog open={galleryOpen} onOpenChange={setGalleryOpen}>
-        <DialogContent className="max-h-[80vh] max-w-2xl overflow-y-auto border-border-strong bg-surface-card text-text-primary">
-          <DialogHeader>
-            <DialogTitle className="text-text-primary">
-              Galeria de fotos — {galleryShowName}
-            </DialogTitle>
-          </DialogHeader>
-
-          {/* Upload button */}
-          <div className="flex items-center gap-3">
-            <label className="cursor-pointer">
-              <input
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handleUploadGalleryPhoto}
-                className="hidden"
-              />
-              <div className="inline-flex items-center gap-2 rounded-lg bg-navy-600 px-4 py-2 text-sm font-medium text-white hover:bg-navy-500 transition-colors">
-                {uploading ? (
-                  <><Loader2 className="h-4 w-4 animate-spin" /> Subiendo...</>
-                ) : (
-                  <><Upload className="h-4 w-4" /> Subir fotos</>
-                )}
-              </div>
-            </label>
-            <span className="text-xs text-text-dim">{galleryPhotos.length} fotos</span>
-          </div>
-
-          {/* Photos grid */}
-          {galleryLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="flex flex-col items-center gap-3">
-                <div className="h-6 w-6 animate-spin rounded-full border-2 border-navy-500 border-t-transparent" />
-                <p className="text-sm text-text-dim">Cargando fotos...</p>
-              </div>
-            </div>
-          ) : galleryPhotos.length === 0 ? (
-            <div className="flex flex-col items-center gap-3 py-12">
-              <div className="rounded-xl bg-overlay-light p-4">
-                <ImageIcon className="h-8 w-8 text-text-ghost" />
-              </div>
-              <p className="text-sm text-text-dim">No hay fotos de este show. Sube las primeras!</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
-              {galleryPhotos.map((photo) => (
-                <div key={photo.id} className="group relative aspect-square overflow-hidden rounded-xl border border-border-default">
-                  <img src={photo.url} alt="" className="h-full w-full object-cover" />
-                  <button
-                    onClick={() => handleDeleteGalleryPhoto(photo.id)}
-                    className="absolute right-1.5 top-1.5 rounded-lg bg-red-500/90 p-1.5 text-white opacity-0 backdrop-blur-sm transition-opacity duration-200 hover:bg-red-500 group-hover:opacity-100"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
         </DialogContent>
       </Dialog>
 

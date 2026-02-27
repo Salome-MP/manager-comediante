@@ -33,8 +33,9 @@ const customizationLabels: Record<string, string> = {
 function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user } = useAuthStore();
+  const { user, loadFromStorage } = useAuthStore();
   const { cart, fetchCart, clearCart } = useCartStore();
+  const [hydrated, setHydrated] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentLoading, setPaymentLoading] = useState(false);
 
@@ -54,18 +55,25 @@ function CheckoutContent() {
   const [ruc, setRuc] = useState('');
 
   useEffect(() => {
+    loadFromStorage();
+    setHydrated(true);
+  }, [loadFromStorage]);
+
+  useEffect(() => {
+    if (!hydrated) return;
     if (!user) {
       router.replace('/login');
       return;
     }
     fetchCart();
-  }, [user, router, fetchCart]);
+  }, [hydrated, user, router, fetchCart]);
 
   useEffect(() => {
+    if (!hydrated) return;
     if (user && cart && cart.items.length === 0) {
       router.replace('/carrito');
     }
-  }, [user, cart, router]);
+  }, [hydrated, user, cart, router]);
 
   if (!user || !cart || cart.items.length === 0) return null;
 
