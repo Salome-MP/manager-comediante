@@ -8,9 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
-} from '@/components/ui/dialog';
-import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
@@ -70,9 +67,6 @@ export default function DashboardPersonalizacionesPage() {
   const [pendingItems, setPendingItems] = useState<PendingCustomization[]>([]);
   const [historyItems, setHistoryItems] = useState<PendingCustomization[]>([]);
   const [loading, setLoading] = useState(true);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ type: '', price: '', description: '' });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ price: '', description: '' });
   const [editSaving, setEditSaving] = useState(false);
@@ -110,28 +104,6 @@ export default function DashboardPersonalizacionesPage() {
   }, [user?.artistId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
-
-  const handleSave = async () => {
-    if (!form.type || !form.price || !user?.artistId) {
-      toast.error('Selecciona tipo y precio');
-      return;
-    }
-    setSaving(true);
-    try {
-      await api.post(`/artists/${user.artistId}/customizations`, {
-        type: form.type,
-        price: parseFloat(form.price),
-        description: form.description || undefined,
-      });
-      toast.success('Personalizacion guardada');
-      setDialogOpen(false);
-      setForm({ type: '', price: '', description: '' });
-      fetchData();
-    } catch {
-      toast.error('Error al guardar');
-    }
-    setSaving(false);
-  };
 
   const handleEdit = async (c: ArtistCustomization) => {
     if (!editForm.price || !user?.artistId) {
@@ -228,9 +200,6 @@ export default function DashboardPersonalizacionesPage() {
     setSavingVc(false);
   };
 
-  const existingTypes = customizations.map((c) => c.type as string);
-  const availableTypes = CUSTOMIZATION_TYPES.filter((t) => !existingTypes.includes(t.value));
-
   const getTypeLabel = (type: string) =>
     CUSTOMIZATION_TYPES.find((t) => t.value === type)?.label || type;
 
@@ -267,62 +236,6 @@ export default function DashboardPersonalizacionesPage() {
           <h2 className="text-2xl font-bold tracking-tight text-text-primary">Personalizaciones</h2>
           <p className="mt-1 text-sm text-text-dim">Configura tus servicios y cumple pedidos</p>
         </div>
-        {availableTypes.length > 0 && (
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-navy-600 text-white hover:bg-navy-500">
-              <Plus className="mr-2 h-4 w-4" /> Nueva
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="border-border-strong bg-surface-card text-text-primary">
-            <DialogHeader>
-              <DialogTitle className="text-text-primary">Agregar Personalizacion</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label className="text-xs font-medium text-text-dim">Tipo *</Label>
-                <Select value={form.type} onValueChange={(v) => setForm((f) => ({ ...f, type: v }))}>
-                  <SelectTrigger className="border-border-strong bg-overlay-light text-text-primary focus:ring-navy-500/20">
-                    <SelectValue placeholder="Seleccionar tipo" />
-                  </SelectTrigger>
-                  <SelectContent className="border-border-strong bg-surface-tooltip text-text-secondary">
-                    {availableTypes.map((t) => (
-                      <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-medium text-text-dim">Precio (S/.) *</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={form.price}
-                  onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
-                  placeholder="Ej: 50.00"
-                  className={inputClass}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="text-xs font-medium text-text-dim">Descripcion</Label>
-                <Textarea
-                  value={form.description}
-                  onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                  placeholder="Describe el servicio (opcional)"
-                  className="bg-overlay-light border-border-strong text-text-primary placeholder:text-text-ghost focus:border-navy-500"
-                />
-              </div>
-              <Button
-                onClick={handleSave}
-                className="w-full bg-navy-600 text-white hover:bg-navy-500"
-                disabled={saving}
-              >
-                {saving ? 'Guardando...' : 'Guardar'}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-        )}
       </div>
 
       {/* Tabs */}
@@ -390,15 +303,6 @@ export default function DashboardPersonalizacionesPage() {
 
         {/* Services tab */}
         <TabsContent value="services" className="mt-4">
-          {customizations.length === 0 ? (
-            <div className="rounded-2xl border border-border-default bg-surface-card p-12 text-center">
-              <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-navy-500/10">
-                <Gift className="h-8 w-8 text-navy-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-text-primary">No tienes personalizaciones</h3>
-              <p className="mt-2 text-sm text-text-dim">Agrega servicios como autografos, video saludos, etc.</p>
-            </div>
-          ) : (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {customizations.map((c) => {
                 const Icon = getTypeIcon(c.type);
@@ -503,7 +407,6 @@ export default function DashboardPersonalizacionesPage() {
                 );
               })}
             </div>
-          )}
         </TabsContent>
 
         {/* History tab */}

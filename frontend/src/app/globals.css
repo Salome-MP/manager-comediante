@@ -105,8 +105,8 @@
 :root {
   --radius: 0.625rem;
 
-  /* Base surfaces — white canvas */
-  --background: #FFFFFF;
+  /* Base surfaces — light navy-tinted bg so white cards pop */
+  --background: #F0F4F8;
   --foreground: #1B2A4A;
 
   --card: #FFFFFF;

@@ -19,7 +19,7 @@ import { toast } from 'sonner';
 import {
   Package, Ticket, Heart, User, Lock, Loader2, Download, Star,
   Truck, Gift, CheckCircle, Clock, Video, Phone, ExternalLink, AlertTriangle, RotateCcw,
-  QrCode, MapPin, Calendar,
+  QrCode, MapPin, Calendar, ChevronLeft, ChevronRight,
 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -108,6 +108,7 @@ export default function MiCuentaPage() {
   const [vcLoadingSlots, setVcLoadingSlots] = useState(false);
   const [vcSelectedSlot, setVcSelectedSlot] = useState<string | null>(null);
   const [vcBooking, setVcBooking] = useState(false);
+  const [vcSelectedDay, setVcSelectedDay] = useState<string | null>(null);
 
   useEffect(() => {
     loadFromStorage();
@@ -175,6 +176,7 @@ export default function MiCuentaPage() {
   const openVcBooking = async (customizationId: string, artistId: string, artistName: string) => {
     setVcCustomization({ id: customizationId, artistId, artistName });
     setVcSelectedSlot(null);
+    setVcSelectedDay(null);
     setVcDialogOpen(true);
     setVcLoadingSlots(true);
     try {
@@ -869,38 +871,103 @@ export default function MiCuentaPage() {
                   <p className="text-sm text-text-muted">No hay horarios disponibles por ahora.</p>
                   <p className="text-xs text-text-ghost mt-1">El artista actualizara su disponibilidad pronto.</p>
                 </div>
-              ) : (
-                <div className="max-h-64 overflow-y-auto space-y-1.5 pr-1">
-                  {vcSlots.map((slot) => {
-                    const d = new Date(slot.date);
-                    const isSelected = vcSelectedSlot === slot.date;
-                    return (
+              ) : (() => {
+                // Group slots by day
+                const slotsByDay: Record<string, { date: string; duration: number }[]> = {};
+                vcSlots.forEach((slot) => {
+                  const dayKey = new Date(slot.date).toLocaleDateString('es-PE', { weekday: 'long', day: '2-digit', month: 'short' });
+                  if (!slotsByDay[dayKey]) slotsByDay[dayKey] = [];
+                  slotsByDay[dayKey].push(slot);
+                });
+                const dayKeys = Object.keys(slotsByDay);
+                const activeDayKey = vcSelectedDay || dayKeys[0];
+                const activeSlots = slotsByDay[activeDayKey] || [];
+                const currentDayIdx = dayKeys.indexOf(activeDayKey);
+
+                return (
+                  <div className="space-y-3">
+                    {/* Slots disponibles badge */}
+                    <div className="flex items-center justify-center gap-1.5 rounded-lg bg-navy-500/10 px-3 py-2 text-xs text-navy-600 dark:text-navy-300">
+                      <Calendar className="h-3.5 w-3.5" />
+                      <span><span className="font-bold">{vcSlots.length}</span> horarios disponibles en {dayKeys.length} {dayKeys.length === 1 ? 'dia' : 'dias'}</span>
+                    </div>
+
+                    {/* Day selector */}
+                    <div className="flex items-center gap-2">
                       <button
-                        key={slot.date}
-                        onClick={() => setVcSelectedSlot(slot.date)}
-                        className={`w-full flex items-center justify-between rounded-lg border px-3 py-2.5 text-sm transition-all ${
-                          isSelected
-                            ? 'border-navy-500 bg-navy-500/10 text-text-primary'
-                            : 'border-border-default bg-overlay-subtle text-text-secondary hover:border-border-strong hover:bg-overlay-light'
-                        }`}
+                        type="button"
+                        onClick={() => { if (currentDayIdx > 0) setVcSelectedDay(dayKeys[currentDayIdx - 1]); }}
+                        disabled={currentDayIdx <= 0}
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border-default text-text-dim hover:bg-overlay-light disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                       >
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-3.5 w-3.5 text-text-ghost" />
-                          <span className="font-medium">
-                            {d.toLocaleDateString('es-PE', { weekday: 'short', day: '2-digit', month: 'short' })}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span>
-                            {d.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                          <span className="text-xs text-text-ghost">{slot.duration} min</span>
-                        </div>
+                        <ChevronLeft className="h-4 w-4" />
                       </button>
-                    );
-                  })}
-                </div>
-              )}
+                      <div className="flex-1 text-center">
+                        <p className="text-sm font-semibold text-text-primary capitalize">{activeDayKey}</p>
+                        <p className="text-[11px] text-text-dim">{activeSlots.length} {activeSlots.length === 1 ? 'horario disponible' : 'horarios disponibles'}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => { if (currentDayIdx < dayKeys.length - 1) setVcSelectedDay(dayKeys[currentDayIdx + 1]); }}
+                        disabled={currentDayIdx >= dayKeys.length - 1}
+                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-border-default text-text-dim hover:bg-overlay-light disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </button>
+                    </div>
+
+                    {/* Day pills - scrollable */}
+                    <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+                      {dayKeys.map((dayKey) => {
+                        const isActive = dayKey === activeDayKey;
+                        const firstSlot = slotsByDay[dayKey][0];
+                        const d = new Date(firstSlot.date);
+                        return (
+                          <button
+                            key={dayKey}
+                            type="button"
+                            onClick={() => { setVcSelectedDay(dayKey); setVcSelectedSlot(null); }}
+                            className={`flex shrink-0 flex-col items-center rounded-lg border px-3 py-2 text-xs transition-all ${
+                              isActive
+                                ? 'border-navy-500 bg-navy-500/10 text-navy-600 dark:text-navy-300'
+                                : 'border-border-default text-text-dim hover:border-border-strong hover:bg-overlay-light'
+                            }`}
+                          >
+                            <span className="font-bold uppercase text-[10px]">{d.toLocaleDateString('es-PE', { weekday: 'short' })}</span>
+                            <span className="text-lg font-bold leading-tight">{d.getDate()}</span>
+                            <span className="text-[10px] opacity-70">{slotsByDay[dayKey].length}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Time slots for selected day */}
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {activeSlots.map((slot) => {
+                        const d = new Date(slot.date);
+                        const isSelected = vcSelectedSlot === slot.date;
+                        return (
+                          <button
+                            key={slot.date}
+                            type="button"
+                            onClick={() => setVcSelectedSlot(slot.date)}
+                            className={`flex flex-col items-center rounded-lg border px-2 py-2.5 text-sm transition-all ${
+                              isSelected
+                                ? 'border-navy-500 bg-navy-500/10 text-text-primary ring-1 ring-navy-500/30'
+                                : 'border-border-default text-text-secondary hover:border-border-strong hover:bg-overlay-light'
+                            }`}
+                          >
+                            <span className="font-semibold">
+                              {d.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                            <span className="text-[10px] text-text-ghost">{slot.duration} min</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {vcSlots.length > 0 && (
                 <Button

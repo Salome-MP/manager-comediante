@@ -105,7 +105,7 @@ export default function FulfillmentPage() {
         {columns.map((col) => {
           const orders = board[col.key] || [];
           return (
-            <div key={col.key} className="rounded-xl border border-border-default bg-surface-sidebar">
+            <div key={col.key} className="rounded-xl border border-border-default bg-surface-card">
               <div className="flex items-center gap-2 border-b border-border-default p-4">
                 <col.icon className="h-4 w-4 text-text-dim" />
                 <h3 className="font-semibold text-text-primary">{col.label}</h3>

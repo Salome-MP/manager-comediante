@@ -52,8 +52,27 @@ export class ArtistsService {
       include: { artist: true },
     });
 
+    // Create all 5 customization types (inactive by default)
+    const artistId = user.artist!.id;
+    const defaultCustomizations = [
+      { type: CustomizationType.AUTOGRAPH, description: 'Autografo personalizado', price: 0 },
+      { type: CustomizationType.HANDWRITTEN_LETTER, description: 'Carta manuscrita personalizada', price: 0 },
+      { type: CustomizationType.VIDEO_GREETING, description: 'Video saludo personalizado', price: 0 },
+      { type: CustomizationType.VIDEO_CALL, description: 'Videollamada con el artista', price: 0 },
+      { type: CustomizationType.PRODUCT_PERSONALIZATION, description: 'Personalizacion de producto', price: 0 },
+    ];
+    await this.prisma.artistCustomization.createMany({
+      data: defaultCustomizations.map((c) => ({
+        artistId,
+        type: c.type,
+        description: c.description,
+        price: c.price,
+        isActive: false,
+      })),
+    });
+
     return {
-      id: user.artist!.id,
+      id: artistId,
       userId: user.id,
       email: user.email,
       stageName: user.artist!.stageName,
@@ -122,7 +141,7 @@ export class ArtistsService {
           take: 10,
           include: { mediaItems: { where: { type: 'image' }, orderBy: { createdAt: 'desc' }, take: 6 } },
         },
-        mediaItems: { orderBy: { sortOrder: 'asc' }, take: 12 },
+        mediaItems: { where: { showId: null, type: { in: ['image', 'video'] } }, orderBy: { sortOrder: 'asc' }, take: 12 },
         customizations: { where: { isActive: true } },
         _count: { select: { followers: true } },
       },
@@ -623,7 +642,7 @@ export class ArtistsService {
 
   async getGallery(artistId: string) {
     return this.prisma.mediaItem.findMany({
-      where: { artistId },
+      where: { artistId, showId: null, type: { in: ['image', 'video'] } },
       orderBy: { sortOrder: 'asc' },
     });
   }

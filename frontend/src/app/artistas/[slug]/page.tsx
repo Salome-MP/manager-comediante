@@ -36,6 +36,9 @@ import {
   Users2,
   ChevronDown,
   ChevronUp,
+  ChevronLeft,
+  ChevronRight,
+  X,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import Calendar from 'react-calendar';
@@ -162,6 +165,8 @@ export default function ArtistProfilePage() {
   const [communityMember, setCommunityMember] = useState(false);
   const [communityLoading, setCommunityLoading] = useState(false);
   const [calendarDate, setCalendarDate] = useState<Date | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [lightboxItems, setLightboxItems] = useState<MediaItem[]>([]);
 
   useEffect(() => {
     if (params.slug) {
@@ -277,11 +282,11 @@ export default function ArtistProfilePage() {
   const bioPosition = lc.bioPosition || 'sidebar';
 
   const socialHrefs: Record<string, (v: string) => string> = {
-    instagram: (v) => `https://instagram.com/${v}`,
-    tiktok: (v) => `https://tiktok.com/@${v}`,
-    youtube: (v) => v,
-    twitter: (v) => `https://twitter.com/${v}`,
-    facebook: (v) => `https://facebook.com/${v}`,
+    instagram: (v) => v.startsWith('http') ? v : `https://www.instagram.com/${v.replace('@', '')}`,
+    tiktok: (v) => v.startsWith('http') ? v : `https://www.tiktok.com/@${v.replace('@', '')}`,
+    youtube: (v) => v.startsWith('http') ? v : `https://www.youtube.com/${v}`,
+    twitter: (v) => v.startsWith('http') ? v : `https://x.com/${v.replace('@', '')}`,
+    facebook: (v) => v.startsWith('http') ? v : `https://www.facebook.com/${v}`,
   };
 
   return (
@@ -816,10 +821,15 @@ export default function ArtistProfilePage() {
                               {isExpanded && showMedia.length > 0 && (
                                 <div className="border-t border-border-default px-4 pb-4 pt-3">
                                   <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6">
-                                    {showMedia.map((m) => (
-                                      <div key={m.id} className="aspect-square overflow-hidden rounded-lg border border-border-default">
+                                    {showMedia.map((m, idx) => (
+                                      <button
+                                        key={m.id}
+                                        type="button"
+                                        onClick={() => { setLightboxItems(showMedia); setLightboxIndex(idx); }}
+                                        className="aspect-square overflow-hidden rounded-lg border border-border-default cursor-pointer"
+                                      >
                                         <img src={m.url!} alt={m.title || ''} className="h-full w-full object-cover hover:scale-110 transition-transform duration-300" />
-                                      </div>
+                                      </button>
                                     ))}
                                   </div>
                                 </div>
@@ -844,10 +854,12 @@ export default function ArtistProfilePage() {
                   {/* Photos & Videos Grid */}
                   {galleryAll.length > 0 && (
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
-                      {galleryAll.map((item) => (
-                        <div
+                      {galleryAll.map((item, idx) => (
+                        <button
                           key={item.id}
-                          className="group relative aspect-square overflow-hidden rounded-xl bg-surface-card border border-border-default hover:border-border-hover transition-all duration-300"
+                          type="button"
+                          onClick={() => { setLightboxItems(galleryAll); setLightboxIndex(idx); }}
+                          className="group relative aspect-square overflow-hidden rounded-xl bg-surface-card border border-border-default hover:border-border-hover transition-all duration-300 cursor-pointer"
                         >
                           {item.type === 'video' ? (
                             <>
@@ -878,7 +890,7 @@ export default function ArtistProfilePage() {
                               <p className="text-xs text-white truncate">{item.title}</p>
                             </div>
                           )}
-                        </div>
+                        </button>
                       ))}
                     </div>
                   )}
@@ -1025,6 +1037,85 @@ export default function ArtistProfilePage() {
           )}
         </div>
       </div>
+      {/* ============================================================
+          LIGHTBOX — vista completa de galería
+      ============================================================ */}
+      {lightboxIndex !== null && lightboxItems[lightboxIndex] && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-sm"
+          onClick={() => setLightboxIndex(null)}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') setLightboxIndex(null);
+            if (e.key === 'ArrowLeft') setLightboxIndex((prev) => prev !== null && prev > 0 ? prev - 1 : lightboxItems.length - 1);
+            if (e.key === 'ArrowRight') setLightboxIndex((prev) => prev !== null && prev < lightboxItems.length - 1 ? prev + 1 : 0);
+          }}
+          tabIndex={0}
+          ref={(el) => el?.focus()}
+        >
+          {/* Cerrar */}
+          <button
+            type="button"
+            onClick={() => setLightboxIndex(null)}
+            className="absolute top-4 right-4 z-10 flex h-10 w-10 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+
+          {/* Contador */}
+          <div className="absolute top-4 left-4 z-10 rounded-full bg-white/10 px-3 py-1.5 text-sm text-white/80">
+            {lightboxIndex + 1} / {lightboxItems.length}
+          </div>
+
+          {/* Flecha izquierda */}
+          {lightboxItems.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setLightboxIndex((prev) => prev !== null && prev > 0 ? prev - 1 : lightboxItems.length - 1);
+              }}
+              className="absolute left-3 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+          )}
+
+          {/* Contenido */}
+          <div className="max-h-[85vh] max-w-[90vw]" onClick={(e) => e.stopPropagation()}>
+            {lightboxItems[lightboxIndex].type === 'video' ? (
+              <video
+                src={lightboxItems[lightboxIndex].url!}
+                className="max-h-[85vh] max-w-[90vw] rounded-lg"
+                controls
+                autoPlay
+              />
+            ) : (
+              <img
+                src={lightboxItems[lightboxIndex].url!}
+                alt={lightboxItems[lightboxIndex].title || ''}
+                className="max-h-[85vh] max-w-[90vw] rounded-lg object-contain"
+              />
+            )}
+            {lightboxItems[lightboxIndex].title && (
+              <p className="mt-3 text-center text-sm text-white/70">{lightboxItems[lightboxIndex].title}</p>
+            )}
+          </div>
+
+          {/* Flecha derecha */}
+          {lightboxItems.length > 1 && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setLightboxIndex((prev) => prev !== null && prev < lightboxItems.length - 1 ? prev + 1 : 0);
+              }}
+              className="absolute right-3 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 transition-colors"
+            >
+              <ChevronRight className="h-6 w-6" />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

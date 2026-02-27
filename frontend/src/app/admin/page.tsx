@@ -107,7 +107,7 @@ function StatCard({
 
   return (
     <div
-      className={`group relative overflow-hidden rounded-2xl border border-border-default bg-surface-sidebar p-5 transition-all duration-200 hover:border-border-strong hover:shadow-lg hover:shadow-[var(--shadow-color)] ${gradient}`}
+      className={`group relative overflow-hidden rounded-2xl border border-border-default bg-surface-card p-5 transition-all duration-200 hover:border-border-strong hover:shadow-lg hover:shadow-[var(--shadow-color)] ${gradient}`}
     >
       {/* Background glow */}
       <div className={`pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full opacity-10 blur-2xl ${iconBg}`} />
@@ -302,7 +302,7 @@ export default function AdminDashboardPage() {
             Resumen de actividad y metricas de la plataforma
           </p>
         </div>
-        <div className="flex items-center gap-2 rounded-xl border border-border-default bg-surface-sidebar px-3 py-2">
+        <div className="flex items-center gap-2 rounded-xl border border-border-default bg-surface-card px-3 py-2">
           <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/60" />
           <span className="text-xs text-text-dim">Datos en tiempo real</span>
         </div>
@@ -316,7 +316,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Chart section */}
-      <div className="rounded-2xl border border-border-default bg-surface-sidebar p-6">
+      <div className="rounded-2xl border border-border-default bg-surface-card p-6">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
             <h3 className="text-base font-semibold text-text-primary">
@@ -402,7 +402,7 @@ export default function AdminDashboardPage() {
 
       {/* Recent orders */}
       {(stats?.recentOrders?.length ?? 0) > 0 && (
-        <div className="rounded-2xl border border-border-default bg-surface-sidebar p-6">
+        <div className="rounded-2xl border border-border-default bg-surface-card p-6">
           <div className="mb-5 flex items-center justify-between">
             <div>
               <h3 className="text-base font-semibold text-text-primary">

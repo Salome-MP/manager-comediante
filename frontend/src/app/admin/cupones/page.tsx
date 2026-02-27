@@ -153,7 +153,7 @@ export default function AdminCuponesPage() {
         </Button>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-border-default bg-surface-sidebar">
+      <div className="overflow-hidden rounded-2xl border border-border-default bg-surface-card">
         <div className="overflow-x-auto">
         <Table className="min-w-[640px]">
           <TableHeader>

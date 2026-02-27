@@ -116,7 +116,7 @@ export default function DevolucionesPage() {
 
       {/* Returns list */}
       {returns.length === 0 ? (
-        <div className="rounded-2xl border border-border-default bg-surface-sidebar p-12 text-center">
+        <div className="rounded-2xl border border-border-default bg-surface-card p-12 text-center">
           <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-navy-500/10">
             <RotateCcw className="h-8 w-8 text-navy-400" />
           </div>
