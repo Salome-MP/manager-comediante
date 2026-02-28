@@ -38,7 +38,6 @@ import {
   Mail,
   Loader2,
   Send,
-  Link2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -120,7 +119,7 @@ function StatCard({ label, value, icon: Icon, iconBg, iconColor }: StatCardProps
           <span className="text-xs font-medium uppercase tracking-widest text-text-dim">
             {label}
           </span>
-          <span className="text-3xl font-bold tracking-tight text-text-primary">
+          <span className="text-2xl sm:text-3xl font-bold tracking-tight text-text-primary">
             {value}
           </span>
         </div>
@@ -202,8 +201,8 @@ export default function DashboardPage() {
     );
   }
 
-  const totalEarned = (stats?.totalEarnings || 0) + (stats?.referralEarnings || 0);
-  const totalPending = (stats?.pendingEarnings || 0) + (stats?.referralPending || 0);
+  const totalEarned = stats?.totalEarnings || 0;
+  const totalPending = stats?.pendingEarnings || 0;
 
   const statCards: StatCardProps[] = [
     {
@@ -248,13 +247,6 @@ export default function DashboardPage() {
       iconBg: 'bg-amber-500/15',
       iconColor: 'text-amber-400',
     },
-    ...(stats?.referralPending > 0 || stats?.referralEarnings > 0 ? [{
-      label: 'Referidos pendiente',
-      value: `S/. ${(stats?.referralPending || 0).toFixed(2)}`,
-      icon: Link2,
-      iconBg: 'bg-pink-500/15',
-      iconColor: 'text-pink-400',
-    }] : []),
   ];
 
   const totalSales = chartData.reduce((acc, d) => acc + Number(d.sales ?? 0), 0);
@@ -262,16 +254,16 @@ export default function DashboardPage() {
   return (
     <div className="space-y-7">
       {/* Page header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text-primary">
             Bienvenido, {user?.firstName}
           </h2>
           <p className="mt-1 text-sm text-text-dim">
             Resumen de actividad y metricas de tu cuenta de artista
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <Button
             onClick={() => setBlastOpen(true)}
             className="gap-2 bg-navy-600 hover:bg-navy-500 text-white font-semibold shadow-lg shadow-navy-500/25"
@@ -279,7 +271,7 @@ export default function DashboardPage() {
             <Megaphone className="h-4 w-4" />
             Notificar seguidores
           </Button>
-          <div className="flex items-center gap-2 rounded-xl border border-border-default bg-surface-card px-3 py-2">
+          <div className="hidden sm:flex items-center gap-2 rounded-xl border border-border-default bg-surface-card px-3 py-2">
             <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/60" />
             <span className="text-xs text-text-dim">Datos en tiempo real</span>
           </div>
@@ -384,7 +376,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Chart section */}
-      <div className="rounded-2xl border border-border-default bg-surface-card p-6">
+      <div className="rounded-2xl border border-border-default bg-surface-card p-4 sm:p-6">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
             <h3 className="text-base font-semibold text-text-primary">Mis Ventas</h3>
@@ -472,7 +464,7 @@ export default function DashboardPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Recent orders */}
         {(stats?.recentOrders?.length ?? 0) > 0 && (
-          <div className="rounded-2xl border border-border-default bg-surface-card p-6">
+          <div className="rounded-2xl border border-border-default bg-surface-card p-4 sm:p-6">
             <div className="mb-5 flex items-center justify-between">
               <div>
                 <h3 className="text-base font-semibold text-text-primary">Ventas recientes</h3>
@@ -530,7 +522,7 @@ export default function DashboardPage() {
 
         {/* Upcoming shows */}
         {(stats?.upcomingShows?.length ?? 0) > 0 && (
-          <div className="rounded-2xl border border-border-default bg-surface-card p-6">
+          <div className="rounded-2xl border border-border-default bg-surface-card p-4 sm:p-6">
             <div className="mb-5 flex items-center justify-between">
               <div>
                 <h3 className="text-base font-semibold text-text-primary">Proximos shows</h3>

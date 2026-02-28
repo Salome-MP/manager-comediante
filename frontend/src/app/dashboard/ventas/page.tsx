@@ -98,7 +98,7 @@ function StatCard({ label, value, icon: Icon, iconBg, iconColor }: StatCardProps
           <span className="text-xs font-medium uppercase tracking-widest text-text-dim">
             {label}
           </span>
-          <span className="text-3xl font-bold tracking-tight text-text-primary">{value}</span>
+          <span className="text-2xl sm:text-3xl font-bold tracking-tight text-text-primary">{value}</span>
         </div>
         <div
           className={`flex h-11 w-11 items-center justify-center rounded-xl ${iconBg} transition-transform duration-200 group-hover:scale-110`}
@@ -210,7 +210,7 @@ export default function ArtistVentasPage() {
     <div className="space-y-7">
       {/* Page header */}
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-text-primary">Mis Ventas</h2>
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text-primary">Mis Ventas</h2>
         <p className="mt-1 text-sm text-text-dim">
           Resumen de tus ingresos y detalle de ventas
         </p>
@@ -224,7 +224,7 @@ export default function ArtistVentasPage() {
       </div>
 
       {/* Chart section */}
-      <div className="rounded-2xl border border-border-default bg-surface-card p-6">
+      <div className="rounded-2xl border border-border-default bg-surface-card p-4 sm:p-6">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
             <h3 className="text-base font-semibold text-text-primary">Ventas por periodo</h3>
@@ -309,7 +309,7 @@ export default function ArtistVentasPage() {
 
       {/* Sales detail table */}
       <div className="overflow-hidden rounded-2xl border border-border-default bg-surface-card">
-        <div className="border-b border-border-default px-6 py-4">
+        <div className="border-b border-border-default px-4 sm:px-6 py-4">
           <h3 className="text-base font-semibold text-text-primary">
             Detalle de ventas
           </h3>
@@ -399,7 +399,7 @@ export default function ArtistVentasPage() {
         </div>
 
         {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-3 border-t border-border-default px-6 py-4">
+          <div className="flex items-center justify-center gap-3 border-t border-border-default px-4 sm:px-6 py-4">
             <button
               onClick={() => setSalesPage(p => Math.max(1, p - 1))}
               disabled={salesPage === 1}
@@ -423,7 +423,7 @@ export default function ArtistVentasPage() {
 
       {/* Ticket sales detail table */}
       <div className="overflow-hidden rounded-2xl border border-border-default bg-surface-card">
-        <div className="border-b border-border-default px-6 py-4">
+        <div className="border-b border-border-default px-4 sm:px-6 py-4">
           <h3 className="text-base font-semibold text-text-primary">
             Entradas vendidas
           </h3>
@@ -504,7 +504,7 @@ export default function ArtistVentasPage() {
         </div>
 
         {ticketTotalPages > 1 && (
-          <div className="flex items-center justify-center gap-3 border-t border-border-default px-6 py-4">
+          <div className="flex items-center justify-center gap-3 border-t border-border-default px-4 sm:px-6 py-4">
             <button
               onClick={() => setTicketSalesPage(p => Math.max(1, p - 1))}
               disabled={ticketSalesPage === 1}

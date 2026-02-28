@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
+import { useAuthStore } from '@/stores/auth.store';
 import { useChartColors } from '@/hooks/use-chart-colors';
 import {
   Select,
@@ -171,6 +173,15 @@ interface TopArtist {
 // ── Main Component ──────────────────────────────────────────────────────────
 
 export default function AdminReportesPage() {
+  const router = useRouter();
+  const { user: currentUser } = useAuthStore();
+
+  useEffect(() => {
+    if (currentUser && currentUser.role !== 'SUPER_ADMIN') {
+      router.replace('/admin');
+    }
+  }, [currentUser, router]);
+
   const [summary, setSummary] = useState<ReportsSummary | null>(null);
   const [chartData, setChartData] = useState<ChartPoint[]>([]);
   const [topProducts, setTopProducts] = useState<TopProduct[]>([]);
@@ -218,7 +229,7 @@ export default function AdminReportesPage() {
       {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text-primary">
             Reportes
           </h2>
           <p className="mt-1 text-sm text-text-dim">
@@ -270,7 +281,7 @@ export default function AdminReportesPage() {
       </div>
 
       {/* ── Section 2: Revenue Chart (stacked areas) ────────────────────── */}
-      <div className="rounded-2xl border border-border-default bg-surface-card p-6">
+      <div className="rounded-2xl border border-border-default bg-surface-card p-4 sm:p-6">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
             <h3 className="text-base font-semibold text-text-primary">
@@ -356,7 +367,7 @@ export default function AdminReportesPage() {
       </div>
 
       {/* ── Section 3: Top Products (horizontal bar chart) ──────────────── */}
-      <div className="rounded-2xl border border-border-default bg-surface-card p-6">
+      <div className="rounded-2xl border border-border-default bg-surface-card p-4 sm:p-6">
         <div className="mb-5">
           <h3 className="flex items-center gap-2 text-base font-semibold text-text-primary">
             <ShoppingBag className="h-5 w-5 text-navy-400" />
@@ -417,7 +428,7 @@ export default function AdminReportesPage() {
       {/* ── Section 4: Shows & Tickets ──────────────────────────────────── */}
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Left: Upcoming shows */}
-        <div className="rounded-2xl border border-border-default bg-surface-card p-6 lg:col-span-2">
+        <div className="rounded-2xl border border-border-default bg-surface-card p-4 sm:p-6 lg:col-span-2">
           <div className="mb-5">
             <h3 className="flex items-center gap-2 text-base font-semibold text-text-primary">
               <CalendarDays className="h-5 w-5 text-pink-400" />
@@ -489,21 +500,21 @@ export default function AdminReportesPage() {
 
         {/* Right: Ticket stats */}
         <div className="flex flex-col gap-4">
-          <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-border-default bg-surface-card p-6">
+          <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-border-default bg-surface-card p-4 sm:p-6">
             <Ticket className="mb-2 h-6 w-6 text-teal-400" />
             <p className="text-3xl font-bold text-text-primary">
               {showsSummary?.totalTicketsSold ?? 0}
             </p>
             <p className="mt-1 text-xs text-text-dim">Entradas vendidas</p>
           </div>
-          <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-border-default bg-surface-card p-6">
+          <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-border-default bg-surface-card p-4 sm:p-6">
             <DollarSign className="mb-2 h-6 w-6 text-emerald-400" />
             <p className="text-3xl font-bold text-text-primary">
               {formatCurrency(showsSummary?.ticketRevenue ?? 0)}
             </p>
             <p className="mt-1 text-xs text-text-dim">Ingresos entradas</p>
           </div>
-          <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-border-default bg-surface-card p-6">
+          <div className="flex flex-1 flex-col items-center justify-center rounded-2xl border border-border-default bg-surface-card p-4 sm:p-6">
             <TrendingUp className="mb-2 h-6 w-6 text-navy-400" />
             <p className="text-3xl font-bold text-text-primary">
               {showsSummary?.avgOccupancy ?? 0}%
@@ -514,7 +525,7 @@ export default function AdminReportesPage() {
       </div>
 
       {/* ── Section 5: Top Artists Table ─────────────────────────────────── */}
-      <div className="rounded-2xl border border-border-default bg-surface-card p-6">
+      <div className="rounded-2xl border border-border-default bg-surface-card p-4 sm:p-6">
         <div className="mb-5">
           <h3 className="flex items-center gap-2 text-base font-semibold text-text-primary">
             <Trophy className="h-5 w-5 text-amber-400" />

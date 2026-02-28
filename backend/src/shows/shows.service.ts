@@ -355,9 +355,15 @@ export class ShowsService {
       throw new BadRequestException('La venta de tickets no esta habilitada para este show');
     }
 
-    // Count only active (paid) tickets for capacity check
+    const now = new Date();
+
+    // Count only valid tickets for capacity (exclude cancelled and expired-unpaid)
     const activeTicketCount = await this.prisma.ticket.count({
-      where: { showId, status: { not: TicketStatus.CANCELLED } },
+      where: {
+        showId,
+        status: { not: TicketStatus.CANCELLED },
+        NOT: { paymentId: null, expiresAt: { lte: now } },
+      },
     });
 
     if (show.totalCapacity && activeTicketCount >= show.totalCapacity) {
@@ -377,12 +383,20 @@ export class ShowsService {
       where: { showId, userId, status: TicketStatus.ACTIVE, paymentId: null },
     });
     if (existingUnpaid) {
-      // Return existing unpaid ticket instead of creating a new one
-      return {
-        ...existingUnpaid,
-        show: { id: show.id, name: show.name, venue: show.venue, date: show.date },
-        message: 'Ya tienes un ticket pendiente de pago para este show',
-      };
+      // If the existing unpaid ticket has expired, cancel it and create a new one
+      if (existingUnpaid.expiresAt && existingUnpaid.expiresAt <= now) {
+        await this.prisma.ticket.update({
+          where: { id: existingUnpaid.id },
+          data: { status: TicketStatus.CANCELLED },
+        });
+      } else {
+        // Return existing unpaid ticket (still valid)
+        return {
+          ...existingUnpaid,
+          show: { id: show.id, name: show.name, venue: show.venue, date: show.date },
+          message: 'Ya tienes un ticket pendiente de pago para este show',
+        };
+      }
     }
 
     const qrCode = `TICKET-${showId}-${randomUUID()}`;
@@ -393,6 +407,7 @@ export class ShowsService {
         userId,
         qrCode,
         price: show.ticketPrice || 0,
+        expiresAt: new Date(Date.now() + 30 * 60 * 1000),
       },
       include: {
         show: {
@@ -418,7 +433,7 @@ export class ShowsService {
     // Mark as paid with a simulated payment ID
     const paid = await this.prisma.ticket.update({
       where: { id: ticketResult.id },
-      data: { paymentId: `SIM-${Date.now()}` },
+      data: { paymentId: `SIM-${Date.now()}`, expiresAt: null },
       include: {
         show: {
           select: { id: true, name: true, venue: true, date: true },

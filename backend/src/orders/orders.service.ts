@@ -105,7 +105,7 @@ export class OrdersService {
 
     // 6. Execute transaction: create order, decrement stock, clear cart
     const order = await this.prisma.$transaction(async (tx) => {
-      // Create order
+      // Create order with 1-hour expiration
       const createdOrder = await tx.order.create({
         data: {
           orderNumber,
@@ -125,6 +125,7 @@ export class OrdersService {
           invoiceType: dto.invoiceType,
           ruc: dto.ruc,
           referralId,
+          expiresAt: new Date(Date.now() + 60 * 60 * 1000),
           items: {
             create: cart.items.map((item) => {
               const unitPrice = Number(item.artistProduct.salePrice);
@@ -140,6 +141,7 @@ export class OrdersService {
                   create: item.customizations.map((c) => ({
                     type: c.type,
                     price: Number(c.price),
+                    notes: (c as any).notes ?? null,
                   })),
                 },
               };

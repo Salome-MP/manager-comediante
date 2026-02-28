@@ -294,14 +294,19 @@ function CheckoutContent() {
                         {item.customizations && item.customizations.length > 0 && (
                           <div className="mt-1 ml-2 space-y-0.5">
                             {(item.customizations as any[]).map((c: any, idx: number) => (
-                              <div key={idx} className="flex items-center justify-between text-xs">
-                                <span className="flex items-center gap-1 text-navy-600 dark:text-navy-300">
-                                  <Sparkles className="h-3 w-3" />
-                                  {customizationLabels[c.type] || c.type}
-                                </span>
-                                <span className="text-navy-600 dark:text-navy-300">
-                                  +S/. {Number(c.price).toFixed(2)}
-                                </span>
+                              <div key={idx}>
+                                <div className="flex items-center justify-between text-xs">
+                                  <span className="flex items-center gap-1 text-navy-600 dark:text-navy-300">
+                                    <Sparkles className="h-3 w-3" />
+                                    {customizationLabels[c.type] || c.type}
+                                  </span>
+                                  <span className="text-navy-600 dark:text-navy-300">
+                                    +S/. {Number(c.price).toFixed(2)}
+                                  </span>
+                                </div>
+                                {c.notes && (
+                                  <p className="text-xs text-text-faint italic ml-4">&quot;{c.notes}&quot;</p>
+                                )}
                               </div>
                             ))}
                           </div>

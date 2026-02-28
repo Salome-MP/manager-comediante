@@ -223,9 +223,9 @@ export default function AdminPedidosPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text-primary">
             Pedidos
           </h2>
           <p className="mt-0.5 text-sm text-text-dim">
@@ -297,7 +297,7 @@ export default function AdminPedidosPage() {
               maxLength={2}
               value={filterDay}
               onChange={(e) => setFilterDay(e.target.value.replace(/\D/g, '').slice(0, 2))}
-              className="w-[52px] text-center border-border-strong bg-overlay-light text-text-primary placeholder:text-text-ghost focus:border-navy-500 focus-visible:ring-navy-500/20"
+              className="w-12 sm:w-14 text-center border-border-strong bg-overlay-light text-text-primary placeholder:text-text-ghost focus:border-navy-500 focus-visible:ring-navy-500/20"
             />
             <span className="text-text-ghost">/</span>
             <Input
@@ -305,7 +305,7 @@ export default function AdminPedidosPage() {
               maxLength={2}
               value={filterMonth}
               onChange={(e) => setFilterMonth(e.target.value.replace(/\D/g, '').slice(0, 2))}
-              className="w-[52px] text-center border-border-strong bg-overlay-light text-text-primary placeholder:text-text-ghost focus:border-navy-500 focus-visible:ring-navy-500/20"
+              className="w-12 sm:w-14 text-center border-border-strong bg-overlay-light text-text-primary placeholder:text-text-ghost focus:border-navy-500 focus-visible:ring-navy-500/20"
             />
             <span className="text-text-ghost">/</span>
             <Input
@@ -313,7 +313,7 @@ export default function AdminPedidosPage() {
               maxLength={4}
               value={filterYear}
               onChange={(e) => setFilterYear(e.target.value.replace(/\D/g, '').slice(0, 4))}
-              className="w-[68px] text-center border-border-strong bg-overlay-light text-text-primary placeholder:text-text-ghost focus:border-navy-500 focus-visible:ring-navy-500/20"
+              className="w-16 sm:w-[68px] text-center border-border-strong bg-overlay-light text-text-primary placeholder:text-text-ghost focus:border-navy-500 focus-visible:ring-navy-500/20"
             />
           </div>
         </div>
@@ -447,8 +447,8 @@ export default function AdminPedidosPage() {
 
         {/* Pagination */}
         {!loading && totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-border-default px-4 py-3">
-            <p className="text-sm text-text-dim">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-t border-border-default px-4 py-3">
+            <p className="text-xs sm:text-sm text-text-dim">
               Mostrando {(page - 1) * LIMIT + 1} a{' '}
               {Math.min(page * LIMIT, total)} de {total} pedidos
             </p>

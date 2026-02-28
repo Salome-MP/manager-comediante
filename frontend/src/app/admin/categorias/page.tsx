@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback } from 'react';
+import { useAuthStore } from '@/stores/auth.store';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import { Plus, Pencil, Power, Trash2, Tag, ChevronRight } from 'lucide-react';
@@ -64,6 +65,9 @@ const inputClass =
 const labelClass = 'text-text-secondary text-sm font-medium';
 
 export default function AdminCategoriasPage() {
+  const { user: currentUser } = useAuthStore();
+  const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN';
+
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -229,28 +233,32 @@ export default function AdminCategoriasPage() {
       >
         <Pencil className="h-4 w-4" />
       </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        className={`h-8 w-8 transition-colors ${
-          category.isActive
-            ? 'text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300'
-            : 'text-text-ghost hover:bg-overlay-light hover:text-text-dim'
-        }`}
-        title={category.isActive ? 'Desactivar' : 'Activar'}
-        onClick={() => handleToggleActive(category)}
-      >
-        <Power className="h-4 w-4" />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8 text-red-500 hover:bg-red-500/10 hover:text-red-400 transition-colors"
-        title="Eliminar"
-        onClick={() => handleDelete(category)}
-      >
-        <Trash2 className="h-4 w-4" />
-      </Button>
+      {isSuperAdmin && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className={`h-8 w-8 transition-colors ${
+            category.isActive
+              ? 'text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300'
+              : 'text-text-ghost hover:bg-overlay-light hover:text-text-dim'
+          }`}
+          title={category.isActive ? 'Desactivar' : 'Activar'}
+          onClick={() => handleToggleActive(category)}
+        >
+          <Power className="h-4 w-4" />
+        </Button>
+      )}
+      {isSuperAdmin && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-red-500 hover:bg-red-500/10 hover:text-red-400 transition-colors"
+          title="Eliminar"
+          onClick={() => handleDelete(category)}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      )}
     </div>
   );
 
@@ -358,9 +366,9 @@ export default function AdminCategoriasPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text-primary">
             Categorias
           </h2>
           <p className="mt-0.5 text-sm text-text-dim">
@@ -369,7 +377,7 @@ export default function AdminCategoriasPage() {
         </div>
         <Button
           onClick={() => setCreateOpen(true)}
-          className="bg-navy-600 hover:bg-navy-500 text-white shadow-lg shadow-navy-900/30"
+          className="bg-navy-600 hover:bg-navy-500 text-white shadow-lg shadow-navy-900/30 w-full sm:w-auto"
         >
           <Plus className="mr-2 h-4 w-4" />
           Nueva Categoria
@@ -392,7 +400,8 @@ export default function AdminCategoriasPage() {
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl border border-border-default bg-surface-card">
-          <Table>
+          <div className="overflow-x-auto">
+          <Table className="min-w-[640px]">
             <TableHeader>
               <TableRow className="border-border-default hover:bg-transparent">
                 <TableHead className="text-text-dim font-medium">Nombre</TableHead>
@@ -461,6 +470,7 @@ export default function AdminCategoriasPage() {
               ))}
             </TableBody>
           </Table>
+          </div>
         </div>
       )}
 

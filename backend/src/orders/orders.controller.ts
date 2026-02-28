@@ -165,10 +165,10 @@ export class OrdersController {
     if (order.userId !== userId) throw new ForbiddenException('No tienes acceso');
     if (order.status !== 'PENDING') throw new BadRequestException('La orden ya fue procesada');
 
-    // Mark as PAID
+    // Mark as PAID and clear expiration
     await this.prisma.order.update({
       where: { id },
-      data: { status: 'PAID', paymentId: 'SIMULATED', paymentMethod: 'test' },
+      data: { status: 'PAID', paymentId: 'SIMULATED', paymentMethod: 'test', expiresAt: null },
     });
 
     // Create artist commissions (distribute coupon discount proportionally)

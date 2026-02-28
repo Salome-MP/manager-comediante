@@ -143,17 +143,17 @@ export default function FulfillmentDetailPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-3 sm:gap-4">
         <Button asChild variant="ghost" size="icon" className="text-text-dim hover:text-text-primary">
           <Link href="/admin/fulfillment"><ArrowLeft className="h-5 w-5" /></Link>
         </Button>
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary">{order.orderNumber}</h2>
-          <p className="text-sm text-text-dim">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text-primary">{order.orderNumber}</h2>
+          <p className="text-sm text-text-dim truncate">
             {order.user.firstName} {order.user.lastName} — {order.user.email}
           </p>
         </div>
-        <Badge className={`ml-auto text-sm px-3 py-1 ${
+        <Badge className={`text-sm px-3 py-1 ${
           order.status === 'PAID' ? 'bg-blue-500/15 text-blue-400 border-blue-500/20' :
           order.status === 'PROCESSING' ? 'bg-navy-500/15 text-navy-400 border-navy-500/20' :
           order.status === 'SHIPPED' ? 'bg-indigo-500/15 text-indigo-400 border-indigo-500/20' :
@@ -167,7 +167,7 @@ export default function FulfillmentDetailPage() {
       {/* Timeline + Actions */}
       <div className="rounded-xl border border-border-default bg-surface-card p-4 md:p-6">
         <h3 className="font-semibold text-text-primary mb-4">Timeline</h3>
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-2">
           {STATUS_FLOW.map((step, i) => {
             const Icon = statusIcons[step] || Clock;
             const isActive = STATUS_FLOW.indexOf(order.status) >= i;

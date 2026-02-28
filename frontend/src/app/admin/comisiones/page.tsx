@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
+import { useAuthStore } from '@/stores/auth.store';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -81,7 +83,7 @@ function SummaryCards({ summary, loading }: { summary: CommissionSummary | null;
       {cards.map((card) => (
         <div
           key={card.title}
-          className="rounded-xl border border-border-default bg-surface-card p-5"
+          className="rounded-xl border border-border-default bg-surface-card p-4 sm:p-5"
         >
           <div className="flex items-center gap-3">
             <div className={`flex h-10 w-10 items-center justify-center rounded-lg ${card.bgIcon}`}>
@@ -596,8 +598,8 @@ function HistoryTab() {
 
         {/* Pagination */}
         {!loading && totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-border-default px-4 py-3">
-            <p className="text-sm text-text-dim">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-t border-border-default px-4 py-3">
+            <p className="text-xs sm:text-sm text-text-dim">
               Mostrando {(page - 1) * LIMIT + 1} a{' '}
               {Math.min(page * LIMIT, total)} de {total}
             </p>
@@ -636,6 +638,15 @@ function HistoryTab() {
 // ─── Main Page ───────────────────────────────────────────────────
 
 export default function AdminComisionesPage() {
+  const router = useRouter();
+  const { user: currentUser } = useAuthStore();
+
+  useEffect(() => {
+    if (currentUser && currentUser.role !== 'SUPER_ADMIN') {
+      router.replace('/admin');
+    }
+  }, [currentUser, router]);
+
   const [summary, setSummary] = useState<CommissionSummary | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [beneficiaries, setBeneficiaries] = useState<BeneficiariesPendingResponse | null>(null);
@@ -697,17 +708,11 @@ export default function AdminComisionesPage() {
     }
   };
 
-  const hasNoPending =
-    !beneficiariesLoading &&
-    beneficiaries &&
-    beneficiaries.artists.length === 0 &&
-    beneficiaries.referrers.length === 0;
-
   return (
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-text-primary">Liquidaciones</h2>
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text-primary">Liquidaciones</h2>
         <p className="mt-0.5 text-sm text-text-dim">
           Gestiona los pagos a artistas y referidos
         </p>
@@ -717,72 +722,76 @@ export default function AdminComisionesPage() {
       <SummaryCards summary={summary} loading={summaryLoading} />
 
       {/* Tabs */}
-      <Tabs defaultValue="pending" className="space-y-4">
+      <Tabs defaultValue="artists" className="space-y-4">
         <TabsList className="bg-overlay-light border border-border-default">
-          <TabsTrigger value="pending" className="data-[state=active]:bg-surface-card">
-            Por liquidar
+          <TabsTrigger value="artists" className="data-[state=active]:bg-surface-card">
+            Artistas
+          </TabsTrigger>
+          <TabsTrigger value="referrers" className="data-[state=active]:bg-surface-card">
+            Referidos
           </TabsTrigger>
           <TabsTrigger value="history" className="data-[state=active]:bg-surface-card">
             Historial
           </TabsTrigger>
         </TabsList>
 
-        {/* Tab: Por liquidar */}
-        <TabsContent value="pending" className="space-y-4">
+        {/* Tab: Artistas */}
+        <TabsContent value="artists" className="space-y-4">
           {beneficiariesLoading ? (
             <div className="flex flex-col items-center justify-center gap-2 py-16">
               <Loader2 className="h-6 w-6 animate-spin text-navy-400" />
-              <span className="text-sm text-text-dim">Cargando beneficiarios...</span>
+              <span className="text-sm text-text-dim">Cargando artistas...</span>
             </div>
-          ) : hasNoPending ? (
+          ) : !beneficiaries || beneficiaries.artists.length === 0 ? (
             <div className="flex flex-col items-center justify-center gap-3 py-16">
               <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-emerald-500/10">
                 <CheckCircle className="h-7 w-7 text-emerald-500" />
               </div>
               <p className="text-sm font-medium text-text-dim">
-                No hay comisiones pendientes por liquidar
+                No hay comisiones de artistas pendientes por liquidar
               </p>
             </div>
           ) : (
-            <>
-              {/* Artists */}
-              {beneficiaries && beneficiaries.artists.length > 0 && (
-                <div className="space-y-3">
-                  {beneficiaries.artists.length > 0 && beneficiaries.referrers.length > 0 && (
-                    <h3 className="text-sm font-semibold uppercase tracking-wider text-text-dim">
-                      Artistas
-                    </h3>
-                  )}
-                  {beneficiaries.artists.map((a) => (
-                    <ArtistCard
-                      key={a.artistId}
-                      artist={a}
-                      onPay={handlePayArtist}
-                      paying={payingId === a.artistId}
-                    />
-                  ))}
-                </div>
-              )}
+            <div className="space-y-3">
+              {beneficiaries.artists.map((a) => (
+                <ArtistCard
+                  key={a.artistId}
+                  artist={a}
+                  onPay={handlePayArtist}
+                  paying={payingId === a.artistId}
+                />
+              ))}
+            </div>
+          )}
+        </TabsContent>
 
-              {/* Referrers */}
-              {beneficiaries && beneficiaries.referrers.length > 0 && (
-                <div className="space-y-3">
-                  {beneficiaries.artists.length > 0 && beneficiaries.referrers.length > 0 && (
-                    <h3 className="text-sm font-semibold uppercase tracking-wider text-text-dim mt-6">
-                      Referidos
-                    </h3>
-                  )}
-                  {beneficiaries.referrers.map((r) => (
-                    <ReferrerCard
-                      key={r.referralId}
-                      referrer={r}
-                      onPay={handlePayReferrer}
-                      paying={payingId === r.referralId}
-                    />
-                  ))}
-                </div>
-              )}
-            </>
+        {/* Tab: Referidos */}
+        <TabsContent value="referrers" className="space-y-4">
+          {beneficiariesLoading ? (
+            <div className="flex flex-col items-center justify-center gap-2 py-16">
+              <Loader2 className="h-6 w-6 animate-spin text-navy-400" />
+              <span className="text-sm text-text-dim">Cargando referidos...</span>
+            </div>
+          ) : !beneficiaries || beneficiaries.referrers.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-3 py-16">
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-emerald-500/10">
+                <CheckCircle className="h-7 w-7 text-emerald-500" />
+              </div>
+              <p className="text-sm font-medium text-text-dim">
+                No hay comisiones de referidos pendientes por liquidar
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {beneficiaries.referrers.map((r) => (
+                <ReferrerCard
+                  key={r.referralId}
+                  referrer={r}
+                  onPay={handlePayReferrer}
+                  paying={payingId === r.referralId}
+                />
+              ))}
+            </div>
           )}
         </TabsContent>
 

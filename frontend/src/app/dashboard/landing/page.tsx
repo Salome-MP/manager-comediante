@@ -105,12 +105,12 @@ export default function LandingConfigPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary">Landing Page</h2>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text-primary">Landing Page</h2>
           <p className="mt-1 text-sm text-text-dim">Personaliza la apariencia de tu perfil publico</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
             onClick={handleReset}
@@ -146,7 +146,7 @@ export default function LandingConfigPage() {
         {/* Settings */}
         <div className="space-y-6">
           {/* Color scheme */}
-          <div className="rounded-2xl border border-border-default bg-surface-card p-5 space-y-4">
+          <div className="rounded-2xl border border-border-default bg-surface-card p-4 sm:p-5 space-y-4">
             <h3 className="flex items-center gap-2 text-sm font-semibold text-text-primary">
               <Palette className="h-4 w-4 text-navy-400" />
               Esquema de colores
@@ -227,12 +227,12 @@ export default function LandingConfigPage() {
           </div>
 
           {/* Layout */}
-          <div className="rounded-2xl border border-border-default bg-surface-card p-5 space-y-4">
+          <div className="rounded-2xl border border-border-default bg-surface-card p-4 sm:p-5 space-y-4">
             <h3 className="text-sm font-semibold text-text-primary">Diseno</h3>
 
             <div className="space-y-2">
               <Label className="text-xs font-medium text-text-dim">Estilo de layout</Label>
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                 {(['default', 'compact', 'wide'] as const).map((layout) => {
                   const labels = { default: 'Estandar', compact: 'Compacto', wide: 'Amplio' };
                   const descs = { default: 'Columnas equilibradas', compact: 'Todo en una columna', wide: 'Mas espacio visual' };
@@ -282,7 +282,7 @@ export default function LandingConfigPage() {
           </div>
 
           {/* Sections visibility */}
-          <div className="rounded-2xl border border-border-default bg-surface-card p-5 space-y-4">
+          <div className="rounded-2xl border border-border-default bg-surface-card p-4 sm:p-5 space-y-4">
             <h3 className="text-sm font-semibold text-text-primary">Secciones visibles</h3>
             <div className="space-y-3">
               {([

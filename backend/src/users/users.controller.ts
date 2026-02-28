@@ -14,8 +14,8 @@ export class UsersController {
   constructor(private usersService: UsersService) {}
 
   @Get()
-  @Roles(Role.SUPER_ADMIN, Role.STAFF)
-  @ApiOperation({ summary: 'Listar todos los usuarios (Admin)' })
+  @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Listar todos los usuarios (Super Admin)' })
   findAll(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -31,8 +31,8 @@ export class UsersController {
   }
 
   @Get(':id')
-  @Roles(Role.SUPER_ADMIN, Role.STAFF)
-  @ApiOperation({ summary: 'Ver detalle de un usuario (Admin)' })
+  @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Ver detalle de un usuario (Super Admin)' })
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);
   }

@@ -293,9 +293,9 @@ export default function AdminDashboardPage() {
   return (
     <div className="space-y-7">
       {/* Page header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text-primary">
             Vision general
           </h2>
           <p className="mt-1 text-sm text-text-dim">
@@ -316,7 +316,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* Chart section */}
-      <div className="rounded-2xl border border-border-default bg-surface-card p-6">
+      <div className="rounded-2xl border border-border-default bg-surface-card p-4 sm:p-6">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
           <div>
             <h3 className="text-base font-semibold text-text-primary">
@@ -402,7 +402,7 @@ export default function AdminDashboardPage() {
 
       {/* Recent orders */}
       {(stats?.recentOrders?.length ?? 0) > 0 && (
-        <div className="rounded-2xl border border-border-default bg-surface-card p-6">
+        <div className="rounded-2xl border border-border-default bg-surface-card p-4 sm:p-6">
           <div className="mb-5 flex items-center justify-between">
             <div>
               <h3 className="text-base font-semibold text-text-primary">

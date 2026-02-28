@@ -134,7 +134,7 @@ function RegisterContent() {
       </div>
 
       {/* Right side — Register form */}
-      <div className="relative flex w-full md:w-1/2 items-center justify-center px-4 py-12">
+      <div className="relative flex w-full md:w-1/2 items-center justify-center px-4 py-8 sm:py-12">
         <div className="w-full max-w-md">
           {/* Header */}
           <div className="mb-6 text-center">
@@ -148,11 +148,11 @@ function RegisterContent() {
 
           {/* Account type selector — above card */}
           {registerResult !== 'pending' && (
-          <div className="mb-4 grid grid-cols-2 gap-3">
+          <div className="mb-4 grid grid-cols-2 gap-2 sm:gap-3">
             <button
               type="button"
               onClick={() => setAccountType('user')}
-              className={`group relative rounded-xl border p-4 text-left transition-all duration-200 ${
+              className={`group relative rounded-xl border p-3 sm:p-4 text-left transition-all duration-200 ${
                 accountType === 'user'
                   ? 'border-navy-500 bg-navy-500/10 shadow-lg shadow-navy-500/10'
                   : 'border-border-strong bg-surface-card hover:border-border-default hover:bg-overlay-light'
@@ -186,7 +186,7 @@ function RegisterContent() {
             <button
               type="button"
               onClick={() => setAccountType('artist')}
-              className={`group relative rounded-xl border p-4 text-left transition-all duration-200 ${
+              className={`group relative rounded-xl border p-3 sm:p-4 text-left transition-all duration-200 ${
                 accountType === 'artist'
                   ? 'border-navy-500 bg-navy-500/10 shadow-lg shadow-navy-500/10'
                   : 'border-border-strong bg-surface-card hover:border-border-default hover:bg-overlay-light'
@@ -245,7 +245,7 @@ function RegisterContent() {
 
           {/* Card */}
           {registerResult !== 'pending' && (
-          <div className="rounded-2xl border border-border-strong bg-surface-card p-8 shadow-2xl shadow-[var(--shadow-color)]">
+          <div className="rounded-2xl border border-border-strong bg-surface-card p-5 sm:p-8 shadow-2xl shadow-[var(--shadow-color)]">
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">

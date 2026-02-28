@@ -20,8 +20,13 @@ import {
   Package, Ticket, Heart, User, Lock, Loader2, Download, Star,
   Truck, Gift, CheckCircle, Clock, Video, Phone, ExternalLink, AlertTriangle, RotateCcw,
   QrCode, MapPin, Calendar, ChevronLeft, ChevronRight,
+  Link2, Copy, Users, DollarSign, MousePointerClick,
 } from 'lucide-react';
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from '@/components/ui/table';
 import { QRCodeSVG } from 'qrcode.react';
+import { TicketCountdown } from '@/components/ticket-countdown';
 
 const statusLabels: Record<string, string> = {
   PENDING: 'Pendiente', PAID: 'Pagado', PROCESSING: 'En proceso',
@@ -78,6 +83,8 @@ export default function MiCuentaPage() {
   const [followedArtists, setFollowedArtists] = useState<any[]>([]);
   const [wishlist, setWishlist] = useState<any[]>([]);
   const [myReturns, setMyReturns] = useState<any[]>([]);
+  const [referral, setReferral] = useState<any>(null);
+  const [generatingReferral, setGeneratingReferral] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Profile form
@@ -134,6 +141,11 @@ export default function MiCuentaPage() {
       setWishlist(wishlistRes.data || []);
       setMyReturns(returnsRes.data || []);
     } catch { /* ignore */ }
+    // Fetch referral separately (may 404 if none)
+    try {
+      const refRes = await api.get('/referrals/my-referral');
+      setReferral(refRes.data);
+    } catch { /* no referral yet */ }
     setLoading(false);
   }, []);
 
@@ -286,6 +298,13 @@ export default function MiCuentaPage() {
                 Devoluciones ({myReturns.length})
               </TabsTrigger>
               <TabsTrigger
+                value="referral"
+                className="gap-1.5 md:gap-2 text-text-muted data-[state=active]:bg-navy-600 data-[state=active]:text-white text-xs md:text-sm whitespace-nowrap"
+              >
+                <Link2 className="h-4 w-4" />
+                Referidos
+              </TabsTrigger>
+              <TabsTrigger
                 value="profile"
                 className="gap-1.5 md:gap-2 text-text-muted data-[state=active]:bg-navy-600 data-[state=active]:text-white text-xs md:text-sm whitespace-nowrap"
               >
@@ -336,6 +355,22 @@ export default function MiCuentaPage() {
                         </Badge>
                       </div>
                     </div>
+
+                    {/* Countdown for pending unpaid orders */}
+                    {order.status === 'PENDING' && !order.paymentId && order.expiresAt && (
+                      <div className="mt-3">
+                        <TicketCountdown
+                          expiresAt={order.expiresAt}
+                          onExpired={() => {
+                            setOrders((prev) =>
+                              prev.map((o: any) =>
+                                o.id === order.id ? { ...o, status: 'CANCELLED' } : o
+                              )
+                            );
+                          }}
+                        />
+                      </div>
+                    )}
 
                     {/* Tracking info */}
                     {(order.status === 'SHIPPED' || order.status === 'DELIVERED') && order.carrier && (
@@ -548,7 +583,7 @@ export default function MiCuentaPage() {
                         Precio: S/. {Number(ticket.price).toFixed(2)}
                       </p>
                     </div>
-                    {ticket.qrCode && ticket.status === 'ACTIVE' && (
+                    {ticket.qrCode && ticket.status === 'ACTIVE' && ticket.paymentId && (
                       <Button
                         variant="outline"
                         size="sm"
@@ -559,16 +594,66 @@ export default function MiCuentaPage() {
                         Ver QR de entrada
                       </Button>
                     )}
+                    {ticket.status === 'ACTIVE' && !ticket.paymentId && (
+                      <div className="mt-3 space-y-2">
+                        {ticket.expiresAt && (
+                          <TicketCountdown
+                            expiresAt={ticket.expiresAt}
+                            onExpired={() => {
+                              setTickets((prev) =>
+                                prev.map((t) =>
+                                  t.id === ticket.id ? { ...t, status: 'CANCELLED' } : t
+                                )
+                              );
+                            }}
+                          />
+                        )}
+                        <Button
+                          className="w-full bg-navy-600 hover:bg-navy-500 text-white font-semibold text-sm"
+                          size="sm"
+                          onClick={async () => {
+                            try {
+                              const { data } = await api.post(
+                                `/payments/ticket/${ticket.id}/preference`
+                              );
+                              const payUrl =
+                                data.sandboxInitPoint || data.initPoint;
+                              if (payUrl) {
+                                window.location.href = payUrl;
+                              }
+                            } catch (err: any) {
+                              if (err?.response?.status === 400) {
+                                setTickets((prev) =>
+                                  prev.map((t) =>
+                                    t.id === ticket.id ? { ...t, status: 'CANCELLED' } : t
+                                  )
+                                );
+                              }
+                            }
+                          }}
+                        >
+                          Completar pago
+                        </Button>
+                      </div>
+                    )}
                     <Badge
                       className={`mt-3 border text-xs ${
-                        ticket.status === 'ACTIVE'
-                          ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/20'
+                        ticket.status === 'ACTIVE' && !ticket.paymentId
+                          ? 'bg-amber-500/15 text-amber-600 dark:text-amber-300 border-amber-500/20'
+                          : ticket.status === 'ACTIVE'
+                          ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border-emerald-500/20'
                           : ticket.status === 'USED'
                           ? 'bg-overlay-strong text-text-muted border-border-strong'
                           : 'bg-red-500/15 text-red-300 border-red-500/20'
                       }`}
                     >
-                      {ticket.status === 'ACTIVE' ? 'Activa' : ticket.status === 'USED' ? 'Usada' : 'Cancelada'}
+                      {ticket.status === 'ACTIVE' && !ticket.paymentId
+                        ? 'Pendiente de pago'
+                        : ticket.status === 'ACTIVE'
+                        ? 'Activa'
+                        : ticket.status === 'USED'
+                        ? 'Usada'
+                        : 'Cancelada'}
                     </Badge>
                   </div>
                 ))}
@@ -698,6 +783,162 @@ export default function MiCuentaPage() {
             )}
           </TabsContent>
 
+          {/* REFERRAL TAB */}
+          <TabsContent value="referral">
+            {loading ? (
+              <div className="flex items-center justify-center py-16">
+                <Loader2 className="h-6 w-6 animate-spin text-navy-400" />
+              </div>
+            ) : !referral ? (
+              <div className="rounded-xl border border-border-medium bg-surface-card py-16 text-center">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-navy-500/10">
+                  <Link2 className="h-8 w-8 text-navy-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-text-primary">
+                  Programa de referidos
+                </h3>
+                <p className="mx-auto mt-2 max-w-sm text-sm text-text-muted">
+                  Comparte tu codigo unico con amigos. Cuando compren usando tu enlace, ganas una comision por cada venta.
+                </p>
+                <Button
+                  onClick={async () => {
+                    setGeneratingReferral(true);
+                    try {
+                      await api.post('/referrals/generate');
+                      toast.success('Codigo de referido generado!');
+                      const refRes = await api.get('/referrals/my-referral');
+                      setReferral(refRes.data);
+                    } catch {
+                      toast.error('Error al generar codigo');
+                    }
+                    setGeneratingReferral(false);
+                  }}
+                  disabled={generatingReferral}
+                  className="mt-6 bg-navy-600 text-white hover:bg-navy-500"
+                >
+                  {generatingReferral ? 'Generando...' : 'Generar mi codigo'}
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Code & Link */}
+                <div className="rounded-xl border border-border-medium bg-surface-card p-4 sm:p-6">
+                  <h3 className="mb-4 text-base font-semibold text-text-primary">Tu codigo de referido</h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <Input
+                        value={referral.code}
+                        readOnly
+                        className="max-w-xs border-border-strong bg-overlay-light text-center font-mono text-lg font-bold text-text-primary"
+                      />
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => {
+                          navigator.clipboard.writeText(referral.code);
+                          toast.success('Codigo copiado!');
+                        }}
+                        title="Copiar codigo"
+                        className="border-border-strong bg-overlay-light text-text-dim hover:border-border-accent hover:bg-overlay-medium hover:text-text-primary"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <Input
+                        value={`${typeof window !== 'undefined' ? window.location.origin : ''}?ref=${referral.code}`}
+                        readOnly
+                        className="border-border-strong bg-overlay-light font-mono text-sm text-text-dim"
+                      />
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => {
+                          const link = `${window.location.origin}?ref=${referral.code}`;
+                          navigator.clipboard.writeText(link);
+                          toast.success('Enlace copiado!');
+                        }}
+                        title="Copiar enlace"
+                        className="border-border-strong bg-overlay-light text-text-dim hover:border-border-accent hover:bg-overlay-medium hover:text-text-primary"
+                      >
+                        <Link2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <p className="text-sm text-text-muted">
+                      Comision por referido:{' '}
+                      <span className="font-semibold text-navy-500 dark:text-navy-400">{referral.commissionRate}%</span>{' '}
+                      del subtotal de cada compra.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Stats */}
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  {[
+                    { label: 'Referidos', value: referral.referredUsers?.length || 0, icon: Users, iconBg: 'bg-blue-500/15', iconColor: 'text-blue-400' },
+                    { label: 'Clicks totales', value: referral.totalClicks, icon: MousePointerClick, iconBg: 'bg-navy-500/15', iconColor: 'text-navy-400' },
+                    { label: 'Total ganado', value: `S/. ${(referral.totalEarnings || 0).toFixed(2)}`, icon: DollarSign, iconBg: 'bg-teal-500/15', iconColor: 'text-teal-400' },
+                    { label: 'Pendiente', value: `S/. ${(referral.pendingEarnings || 0).toFixed(2)}`, icon: DollarSign, iconBg: 'bg-amber-500/15', iconColor: 'text-amber-400' },
+                  ].map((stat) => (
+                    <div
+                      key={stat.label}
+                      className="group relative overflow-hidden rounded-xl border border-border-medium bg-surface-card p-5 transition-all duration-200 hover:border-border-strong"
+                    >
+                      <div className={`pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full opacity-10 blur-2xl ${stat.iconBg}`} />
+                      <div className="relative flex items-start justify-between">
+                        <div className="flex flex-col gap-2">
+                          <span className="text-xs font-medium uppercase tracking-widest text-text-muted">{stat.label}</span>
+                          <span className="text-2xl font-bold tracking-tight text-text-primary">{stat.value}</span>
+                        </div>
+                        <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${stat.iconBg} transition-transform duration-200 group-hover:scale-110`}>
+                          <stat.icon className={`h-5 w-5 ${stat.iconColor}`} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Commissions Table */}
+                {referral.commissions && referral.commissions.length > 0 && (
+                  <div className="overflow-hidden rounded-xl border border-border-medium bg-surface-card">
+                    <div className="border-b border-border-medium px-4 sm:px-6 py-4">
+                      <h3 className="text-base font-semibold text-text-primary">Historial de comisiones</h3>
+                      <p className="mt-0.5 text-sm text-text-muted">{referral.commissions.length} registros</p>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <Table className="min-w-[640px]">
+                        <TableHeader>
+                          <TableRow className="border-border-medium hover:bg-transparent">
+                            <TableHead className="text-xs font-semibold uppercase tracking-wider text-text-muted">Pedido</TableHead>
+                            <TableHead className="text-xs font-semibold uppercase tracking-wider text-text-muted">Monto</TableHead>
+                            <TableHead className="text-xs font-semibold uppercase tracking-wider text-text-muted">Estado</TableHead>
+                            <TableHead className="text-xs font-semibold uppercase tracking-wider text-text-muted">Fecha</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {referral.commissions.map((c: any) => (
+                            <TableRow key={c.id} className="border-border-medium transition-colors hover:bg-overlay-subtle">
+                              <TableCell className="font-mono text-sm font-semibold text-text-primary">{c.order?.orderNumber}</TableCell>
+                              <TableCell className="font-semibold text-text-primary">S/. {Number(c.amount).toFixed(2)}</TableCell>
+                              <TableCell>
+                                <span className={`inline-flex items-center rounded-lg px-2.5 py-1 text-xs font-medium ${
+                                  c.status === 'PAID' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'
+                                }`}>
+                                  {c.status === 'PAID' ? 'Pagado' : 'Pendiente'}
+                                </span>
+                              </TableCell>
+                              <TableCell className="text-text-muted">{new Date(c.createdAt).toLocaleDateString('es-PE')}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </TabsContent>
+
           {/* PROFILE TAB */}
           <TabsContent value="profile">
             <div className="grid gap-4 md:gap-6 lg:grid-cols-2">
@@ -771,10 +1012,11 @@ export default function MiCuentaPage() {
           </DialogHeader>
           {qrTicket && (
             <div className="flex flex-col items-center gap-4 py-2">
-              <div className="rounded-xl bg-white p-5">
+              <div className="rounded-xl bg-white p-4 sm:p-5 max-w-[calc(100vw-6rem)]">
                 <QRCodeSVG
                   value={`${window.location.origin}/entrada/${qrTicket.qrCode}`}
-                  size={240}
+                  size={200}
+                  className="w-full h-auto max-w-[200px]"
                   level="M"
                   bgColor="#ffffff"
                   fgColor="#000000"

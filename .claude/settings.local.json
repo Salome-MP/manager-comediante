@@ -65,7 +65,8 @@
       "Bash(npx prisma:*)",
       "mcp__ide__getDiagnostics",
       "Bash(wc:*)",
-      "Bash(npx ts-node:*)"
+      "Bash(npx ts-node:*)",
+      "Bash(npx eslint:*)"
     ]
   }
 }

@@ -327,6 +327,7 @@ model CartItemCustomization {
   cartItemId String            @map("cart_item_id")
   type       CustomizationType
   price      Decimal           @db.Decimal(10, 2)
+  notes      String?
 
   cartItem CartItem @relation(fields: [cartItemId], references: [id], onDelete: Cascade)
 
@@ -377,6 +378,9 @@ model Order {
   shippedAt       DateTime?   @map("shipped_at")
   deliveredAt     DateTime?   @map("delivered_at")
   fulfillmentNotes String?    @map("fulfillment_notes")
+
+  // Expiration for unpaid orders
+  expiresAt       DateTime?   @map("expires_at")
 
   createdAt       DateTime    @default(now()) @map("created_at")
   updatedAt       DateTime    @updatedAt @map("updated_at")
@@ -470,6 +474,7 @@ model Ticket {
   status    TicketStatus @default(ACTIVE)
   paymentId String?      @map("payment_id") // Mercado Pago ID
   price     Decimal      @db.Decimal(10, 2)
+  expiresAt DateTime?    @map("expires_at")
   createdAt DateTime     @default(now()) @map("created_at")
   updatedAt DateTime     @updatedAt @map("updated_at")
 

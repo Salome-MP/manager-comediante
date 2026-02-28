@@ -126,7 +126,7 @@ function BuscarContent() {
   return (
     <div className="min-h-screen bg-surface-base">
       {/* Hero Header */}
-      <div className="relative overflow-hidden bg-gradient-to-b from-navy-600 via-navy-700 to-navy-800 pt-16 pb-12">
+      <div className="relative overflow-hidden bg-gradient-to-b from-navy-600 via-navy-700 to-navy-800 pt-10 pb-8 sm:pt-16 sm:pb-12">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-navy-400/15 blur-3xl" />
           <div className="absolute -top-16 -right-32 w-80 h-80 rounded-full bg-navy-300/10 blur-3xl" />
@@ -149,7 +149,7 @@ function BuscarContent() {
             Encuentra productos exclusivos de tus comediantes favoritos. Merch oficial, envios a todo Latinoamerica.
           </p>
           {!loading && total > 0 && (
-            <div className="mt-8 inline-flex items-center gap-6 rounded-2xl border border-white/20 bg-white/10 px-6 py-3 backdrop-blur-sm">
+            <div className="mt-8 inline-flex items-center gap-3 sm:gap-6 rounded-2xl border border-white/20 bg-white/10 px-4 sm:px-6 py-3 backdrop-blur-sm">
               <div className="flex items-center gap-2">
                 <Package className="h-4 w-4 text-white" />
                 <span className="text-sm font-semibold text-white">{total}</span>
@@ -184,10 +184,10 @@ function BuscarContent() {
         </div>
 
         {/* Filters */}
-        <div className="mb-6 flex flex-wrap items-center gap-3 rounded-xl border border-border-medium bg-surface-card p-4">
+        <div className="mb-6 flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 rounded-xl border border-border-medium bg-surface-card p-4">
           <SlidersHorizontal className="h-4 w-4 text-text-faint" />
           <Select value={categoryId} onValueChange={(v) => { setCategoryId(v === 'all' ? '' : v); }}>
-            <SelectTrigger className="h-9 w-44 border-border-strong bg-overlay-light text-sm text-text-secondary">
+            <SelectTrigger className="h-9 w-full sm:w-44 border-border-strong bg-overlay-light text-sm text-text-secondary">
               <SelectValue placeholder="Categoria" />
             </SelectTrigger>
             <SelectContent className="border-border-strong bg-surface-tooltip text-text-secondary">
@@ -208,7 +208,7 @@ function BuscarContent() {
           </Select>
 
           <Select value={artistId} onValueChange={(v) => { setArtistId(v === 'all' ? '' : v); }}>
-            <SelectTrigger className="h-9 w-44 border-border-strong bg-overlay-light text-sm text-text-secondary">
+            <SelectTrigger className="h-9 w-full sm:w-44 border-border-strong bg-overlay-light text-sm text-text-secondary">
               <SelectValue placeholder="Artista" />
             </SelectTrigger>
             <SelectContent className="border-border-strong bg-surface-tooltip text-text-secondary">
@@ -219,13 +219,13 @@ function BuscarContent() {
             </SelectContent>
           </Select>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <Input
               type="number"
               placeholder="Min S/."
               value={minPrice}
               onChange={(e) => setMinPrice(e.target.value)}
-              className="h-9 w-28 border-border-strong bg-overlay-light text-sm text-text-primary placeholder:text-text-ghost"
+              className="h-9 w-full sm:w-28 border-border-strong bg-overlay-light text-sm text-text-primary placeholder:text-text-ghost"
             />
             <span className="text-text-ghost">-</span>
             <Input
@@ -233,7 +233,7 @@ function BuscarContent() {
               placeholder="Max S/."
               value={maxPrice}
               onChange={(e) => setMaxPrice(e.target.value)}
-              className="h-9 w-28 border-border-strong bg-overlay-light text-sm text-text-primary placeholder:text-text-ghost"
+              className="h-9 w-full sm:w-28 border-border-strong bg-overlay-light text-sm text-text-primary placeholder:text-text-ghost"
             />
           </div>
 

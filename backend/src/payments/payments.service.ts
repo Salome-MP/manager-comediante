@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
@@ -41,6 +41,27 @@ export class PaymentsService {
 
     if (!order) throw new NotFoundException('Orden no encontrada');
     if (order.userId !== userId) throw new NotFoundException('Orden no encontrada');
+
+    // Reject if order is cancelled or expired
+    if (order.status === 'CANCELLED') {
+      throw new BadRequestException('Este pedido fue cancelado');
+    }
+    if (order.expiresAt && new Date(order.expiresAt) <= new Date()) {
+      // Cancel and restore stock
+      await this.prisma.$transaction(async (tx) => {
+        await tx.order.update({
+          where: { id: orderId },
+          data: { status: 'CANCELLED' },
+        });
+        for (const item of order.items) {
+          await tx.artistProduct.update({
+            where: { id: item.artistProductId },
+            data: { stock: { increment: item.quantity } },
+          });
+        }
+      });
+      throw new BadRequestException('El tiempo para pagar este pedido ha expirado. Crea un nuevo pedido.');
+    }
 
     const preference = new Preference(this.client);
 
@@ -123,6 +144,18 @@ export class PaymentsService {
     if (!ticket) throw new NotFoundException('Ticket no encontrado');
     if (ticket.userId !== userId) throw new NotFoundException('Ticket no encontrado');
 
+    // Reject if ticket is cancelled or expired
+    if (ticket.status === 'CANCELLED') {
+      throw new BadRequestException('Este ticket fue cancelado');
+    }
+    if (ticket.expiresAt && new Date(ticket.expiresAt) <= new Date()) {
+      await this.prisma.ticket.update({
+        where: { id: ticketId },
+        data: { status: 'CANCELLED' },
+      });
+      throw new BadRequestException('El tiempo de reserva ha expirado. Compra una nueva entrada.');
+    }
+
     const preference = new Preference(this.client);
 
     try {
@@ -193,9 +226,29 @@ export class PaymentsService {
       if (externalRef.startsWith('ticket:')) {
         const ticketId = externalRef.replace('ticket:', '');
         if (status === 'approved') {
+          // Verify ticket is still valid before marking as paid
+          const existingTicket = await this.prisma.ticket.findUnique({
+            where: { id: ticketId },
+          });
+
+          if (!existingTicket || existingTicket.status === 'CANCELLED') {
+            this.logger.warn(`Ticket ${ticketId} already cancelled, ignoring payment`);
+            return { ok: true };
+          }
+
+          // If ticket has expired, cancel it
+          if (existingTicket.expiresAt && existingTicket.expiresAt <= new Date()) {
+            await this.prisma.ticket.update({
+              where: { id: ticketId },
+              data: { status: 'CANCELLED' },
+            });
+            this.logger.warn(`Ticket ${ticketId} expired, cancelled despite payment`);
+            return { ok: true };
+          }
+
           const ticket = await this.prisma.ticket.update({
             where: { id: ticketId },
-            data: { paymentId },
+            data: { paymentId, expiresAt: null },
             include: {
               show: { include: { artist: true } },
               user: true,
@@ -273,10 +326,10 @@ export class PaymentsService {
       }
 
       if (status === 'approved') {
-        // Update order to PAID
+        // Update order to PAID and clear expiration
         await this.prisma.order.update({
           where: { id: orderId },
-          data: { status: 'PAID', paymentId, paymentMethod },
+          data: { status: 'PAID', paymentId, paymentMethod, expiresAt: null },
         });
 
         // Create artist commissions

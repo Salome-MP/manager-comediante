@@ -89,14 +89,14 @@ export default function ArtistProductosPage() {
     <div className="space-y-6">
       {/* Page header */}
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-text-primary">Mis Productos</h2>
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text-primary">Mis Productos</h2>
         <p className="mt-1 text-sm text-text-dim">{products.length} productos asignados</p>
       </div>
 
       {/* Filters */}
       {products.length > 0 && (
         <div className="flex flex-wrap items-center gap-3">
-          <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <div className="relative min-w-0 w-full sm:min-w-[200px] sm:max-w-sm sm:flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-ghost" />
             <Input
               placeholder="Buscar producto..."

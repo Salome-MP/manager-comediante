@@ -182,7 +182,7 @@ export default function ArtistShopPage() {
 
   return (
     <div className="min-h-screen bg-surface-base">
-      <div className="mx-auto max-w-7xl px-4 py-8">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:py-8">
         {/* Header */}
         <div className="mb-8">
           <Link
@@ -192,7 +192,7 @@ export default function ArtistShopPage() {
             <ArrowLeft className="h-4 w-4" />
             Volver al perfil de {artist.stageName}
           </Link>
-          <h1 className="mt-4 text-3xl font-bold text-text-primary">
+          <h1 className="mt-4 text-2xl sm:text-3xl font-bold text-text-primary">
             Tienda de {artist.stageName}
           </h1>
           <p className="mt-1 text-text-muted">

@@ -89,6 +89,7 @@ export class CartService {
             cartItemId: existingItem.id,
             type: c.type,
             price: new Prisma.Decimal(c.price),
+            notes: c.notes ?? null,
           })),
         });
       }
@@ -111,6 +112,7 @@ export class CartService {
             cartItemId: cartItem.id,
             type: c.type,
             price: new Prisma.Decimal(c.price),
+            notes: c.notes ?? null,
           })),
         });
       }

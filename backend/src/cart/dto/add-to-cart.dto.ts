@@ -30,6 +30,14 @@ export class CartItemCustomizationDto {
   @IsNumber()
   @Min(0)
   price: number;
+
+  @ApiPropertyOptional({
+    example: 'Quiero que el saludo sea para mi amigo Juan por su cumpleaños',
+    description: 'Nota del fan para el artista sobre esta personalización',
+  })
+  @IsOptional()
+  @IsString()
+  notes?: string;
 }
 
 export class AddToCartDto {

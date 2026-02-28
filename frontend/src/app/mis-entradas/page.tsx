@@ -24,7 +24,9 @@ import {
   ArrowLeft,
   Loader2,
   QrCode,
+  AlertTriangle,
 } from 'lucide-react';
+import { TicketCountdown } from '@/components/ticket-countdown';
 import { QRCodeSVG } from 'qrcode.react';
 
 const ticketStatusLabels: Record<string, string> = {
@@ -128,9 +130,9 @@ function MisEntradasContent() {
         )}
 
         {/* Header */}
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-text-primary">Mis Entradas</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">Mis Entradas</h1>
             <p className="mt-1 text-text-muted">
               {tickets.length} entrada{tickets.length !== 1 ? 's' : ''}
             </p>
@@ -232,8 +234,8 @@ function MisEntradasContent() {
                       </span>
                     </div>
 
-                    {/* QR Code button */}
-                    {ticket.status === 'ACTIVE' && !isPast && ticket.qrCode && (
+                    {/* QR Code button — only for paid tickets */}
+                    {ticket.status === 'ACTIVE' && !isPast && ticket.qrCode && ticket.paymentId && (
                       <Button
                         variant="outline"
                         className="w-full border-navy-500/20 bg-navy-500/5 text-navy-600 dark:text-navy-300 hover:bg-navy-500/10 font-semibold"
@@ -245,25 +247,45 @@ function MisEntradasContent() {
                     )}
 
                     {ticket.status === 'ACTIVE' && !ticket.paymentId && (
-                      <Button
-                        className="w-full bg-navy-600 hover:bg-navy-500 text-white font-semibold text-sm"
-                        onClick={async () => {
-                          try {
-                            const { data } = await api.post(
-                              `/payments/ticket/${ticket.id}/preference`
-                            );
-                            const payUrl =
-                              data.sandboxInitPoint || data.initPoint;
-                            if (payUrl) {
-                              window.location.href = payUrl;
+                      <>
+                        {ticket.expiresAt && (
+                          <TicketCountdown
+                            expiresAt={ticket.expiresAt}
+                            onExpired={() => {
+                              setTickets((prev) =>
+                                prev.map((t) =>
+                                  t.id === ticket.id ? { ...t, status: 'CANCELLED' } : t
+                                )
+                              );
+                            }}
+                          />
+                        )}
+                        <Button
+                          className="w-full bg-navy-600 hover:bg-navy-500 text-white font-semibold text-sm"
+                          onClick={async () => {
+                            try {
+                              const { data } = await api.post(
+                                `/payments/ticket/${ticket.id}/preference`
+                              );
+                              const payUrl =
+                                data.sandboxInitPoint || data.initPoint;
+                              if (payUrl) {
+                                window.location.href = payUrl;
+                              }
+                            } catch (err: any) {
+                              if (err?.response?.status === 400) {
+                                setTickets((prev) =>
+                                  prev.map((t) =>
+                                    t.id === ticket.id ? { ...t, status: 'CANCELLED' } : t
+                                  )
+                                );
+                              }
                             }
-                          } catch {
-                            // ignore
-                          }
-                        }}
-                      >
-                        Completar pago
-                      </Button>
+                          }}
+                        >
+                          Completar pago
+                        </Button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -282,10 +304,11 @@ function MisEntradasContent() {
             </DialogHeader>
             {qrTicket && (
               <div className="flex flex-col items-center gap-4 py-2">
-                <div className="rounded-xl bg-white p-5">
+                <div className="rounded-xl bg-white p-4 sm:p-5 max-w-[calc(100vw-6rem)]">
                   <QRCodeSVG
                     value={`${window.location.origin}/entrada/${qrTicket.qrCode}`}
-                    size={240}
+                    size={200}
+                    className="w-full h-auto max-w-[200px]"
                     level="M"
                     bgColor="#ffffff"
                     fgColor="#000000"

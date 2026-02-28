@@ -46,7 +46,7 @@ export default function ComunidadesPage() {
   return (
     <div className="min-h-screen bg-surface-deep">
       {/* Hero Header */}
-      <div className="relative overflow-hidden bg-gradient-to-b from-navy-600 via-navy-700 to-navy-800 pt-16 pb-12">
+      <div className="relative overflow-hidden bg-gradient-to-b from-navy-600 via-navy-700 to-navy-800 pt-10 pb-8 sm:pt-16 sm:pb-12">
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute -top-32 -left-32 w-96 h-96 rounded-full bg-navy-400/15 blur-3xl" />
           <div className="absolute -top-16 -right-32 w-80 h-80 rounded-full bg-navy-300/10 blur-3xl" />
@@ -69,7 +69,7 @@ export default function ComunidadesPage() {
             Comunidades de artistas a las que te has unido. Chatea con otros fans y lee los avisos del artista.
           </p>
           {!loading && communities.length > 0 && (
-            <div className="mt-8 inline-flex items-center gap-6 rounded-2xl border border-white/20 bg-white/10 px-6 py-3 backdrop-blur-sm">
+            <div className="mt-8 inline-flex items-center gap-3 sm:gap-6 rounded-2xl border border-white/20 bg-white/10 px-4 sm:px-6 py-3 backdrop-blur-sm">
               <div className="flex items-center gap-2">
                 <MessageCircle className="h-4 w-4 text-white" />
                 <span className="text-sm font-semibold text-white">{communities.length}</span>

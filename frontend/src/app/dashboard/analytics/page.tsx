@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import api from '@/lib/api';
 import { useChartColors } from '@/hooks/use-chart-colors';
-import { Loader2, ShoppingBag, Users, Star, TrendingUp, BarChart3, DollarSign, Link2, MousePointerClick } from 'lucide-react';
+import { Loader2, ShoppingBag, Users, Star, TrendingUp, BarChart3, DollarSign } from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -22,12 +22,6 @@ interface Analytics {
   averageOrderValue: number;
   totalReviews: number;
   averageRating: number;
-  referralStats?: {
-    totalClicks: number;
-    referredUsers: number;
-    totalEarned: number;
-    pendingAmount: number;
-  };
 }
 
 function CustomTooltip({
@@ -89,13 +83,13 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-7">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-text-primary">Analytics</h2>
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text-primary">Analytics</h2>
         <p className="mt-1 text-sm text-text-dim">Metricas avanzadas de tu cuenta de artista</p>
       </div>
 
       {/* KPI cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="group relative overflow-hidden rounded-2xl border border-border-default bg-surface-card p-5 transition-all duration-200 hover:border-border-strong">
+        <div className="group relative overflow-hidden rounded-2xl border border-border-default bg-surface-card p-4 sm:p-5 transition-all duration-200 hover:border-border-strong">
           <div className="flex items-start justify-between">
             <div className="flex flex-col gap-2">
               <span className="text-xs font-medium uppercase tracking-widest text-text-dim">Ticket promedio</span>
@@ -107,7 +101,7 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        <div className="group relative overflow-hidden rounded-2xl border border-border-default bg-surface-card p-5 transition-all duration-200 hover:border-border-strong">
+        <div className="group relative overflow-hidden rounded-2xl border border-border-default bg-surface-card p-4 sm:p-5 transition-all duration-200 hover:border-border-strong">
           <div className="flex items-start justify-between">
             <div className="flex flex-col gap-2">
               <span className="text-xs font-medium uppercase tracking-widest text-text-dim">Tasa conversion</span>
@@ -119,7 +113,7 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        <div className="group relative overflow-hidden rounded-2xl border border-border-default bg-surface-card p-5 transition-all duration-200 hover:border-border-strong">
+        <div className="group relative overflow-hidden rounded-2xl border border-border-default bg-surface-card p-4 sm:p-5 transition-all duration-200 hover:border-border-strong">
           <div className="flex items-start justify-between">
             <div className="flex flex-col gap-2">
               <span className="text-xs font-medium uppercase tracking-widest text-text-dim">Reseñas</span>
@@ -139,7 +133,7 @@ export default function AnalyticsPage() {
           )}
         </div>
 
-        <div className="group relative overflow-hidden rounded-2xl border border-border-default bg-surface-card p-5 transition-all duration-200 hover:border-border-strong">
+        <div className="group relative overflow-hidden rounded-2xl border border-border-default bg-surface-card p-4 sm:p-5 transition-all duration-200 hover:border-border-strong">
           <div className="flex items-start justify-between">
             <div className="flex flex-col gap-2">
               <span className="text-xs font-medium uppercase tracking-widest text-text-dim">Compradores</span>
@@ -154,7 +148,7 @@ export default function AnalyticsPage() {
 
       {/* Followers growth chart */}
       {analytics.followersChart.length > 0 && (
-        <div className="rounded-2xl border border-border-default bg-surface-card p-6">
+        <div className="rounded-2xl border border-border-default bg-surface-card p-4 sm:p-6">
           <h3 className="mb-1 text-base font-semibold text-text-primary">Nuevos seguidores por mes</h3>
           <p className="mb-4 text-sm text-text-dim">Ultimos 6 meses</p>
           <ResponsiveContainer width="100%" height={250}>
@@ -170,7 +164,7 @@ export default function AnalyticsPage() {
       )}
 
       {/* Top products */}
-      <div className="rounded-2xl border border-border-default bg-surface-card p-6">
+      <div className="rounded-2xl border border-border-default bg-surface-card p-4 sm:p-6">
         <h3 className="mb-1 text-base font-semibold text-text-primary">Productos mas vendidos</h3>
         <p className="mb-4 text-sm text-text-dim">Top 5 por ingresos</p>
         {analytics.topProducts.length === 0 ? (
@@ -203,51 +197,6 @@ export default function AnalyticsPage() {
         )}
       </div>
 
-      {/* Referral stats */}
-      {analytics.referralStats && (analytics.referralStats.totalClicks > 0 || analytics.referralStats.referredUsers > 0 || analytics.referralStats.pendingAmount > 0) && (
-        <div className="rounded-2xl border border-border-default bg-surface-card p-6">
-          <h3 className="mb-1 text-base font-semibold text-text-primary">Referidos</h3>
-          <p className="mb-4 text-sm text-text-dim">Rendimiento de tu enlace de referido</p>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="flex items-center gap-3 rounded-xl bg-overlay-subtle px-4 py-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/15">
-                <MousePointerClick className="h-4 w-4 text-blue-400" />
-              </div>
-              <div>
-                <p className="text-xs text-text-dim">Clics</p>
-                <p className="text-lg font-bold text-text-primary">{analytics.referralStats.totalClicks}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 rounded-xl bg-overlay-subtle px-4 py-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/15">
-                <Users className="h-4 w-4 text-emerald-400" />
-              </div>
-              <div>
-                <p className="text-xs text-text-dim">Referidos</p>
-                <p className="text-lg font-bold text-text-primary">{analytics.referralStats.referredUsers}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 rounded-xl bg-overlay-subtle px-4 py-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-teal-500/15">
-                <DollarSign className="h-4 w-4 text-teal-400" />
-              </div>
-              <div>
-                <p className="text-xs text-text-dim">Ganado</p>
-                <p className="text-lg font-bold text-teal-400">S/. {analytics.referralStats.totalEarned.toFixed(2)}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3 rounded-xl bg-overlay-subtle px-4 py-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/15">
-                <Link2 className="h-4 w-4 text-amber-400" />
-              </div>
-              <div>
-                <p className="text-xs text-text-dim">Pendiente</p>
-                <p className="text-lg font-bold text-amber-400">S/. {analytics.referralStats.pendingAmount.toFixed(2)}</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

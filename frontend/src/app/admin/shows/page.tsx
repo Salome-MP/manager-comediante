@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useAuthStore } from '@/stores/auth.store';
 import api from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -77,6 +78,9 @@ const labelClass = 'text-text-secondary text-sm font-medium';
 const LIMIT = 20;
 
 export default function AdminShowsPage() {
+  const { user: currentUser } = useAuthStore();
+  const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN';
+
   const [shows, setShows] = useState<Show[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -192,14 +196,14 @@ export default function AdminShowsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary">Shows</h2>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text-primary">Shows</h2>
           <p className="mt-0.5 text-sm text-text-dim">
             Gestiona todos los shows de la plataforma
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <span className="rounded-lg border border-border-default bg-surface-card px-3 py-1.5 text-sm font-medium text-text-dim">
             {total} show{total !== 1 ? 's' : ''}
           </span>
@@ -282,7 +286,7 @@ export default function AdminShowsPage() {
                     className={inputClass}
                   />
                 </div>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label className={labelClass}>Precio entrada (S/.)</Label>
                     <Input
@@ -527,7 +531,7 @@ export default function AdminShowsPage() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      {show.status === 'SCHEDULED' && (
+                      {isSuperAdmin && show.status === 'SCHEDULED' && (
                         <Button
                           variant="ghost"
                           size="icon"
@@ -549,8 +553,8 @@ export default function AdminShowsPage() {
 
         {/* Pagination */}
         {!loading && totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-border-default px-4 py-3">
-            <p className="text-sm text-text-dim">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-t border-border-default px-4 py-3">
+            <p className="text-xs sm:text-sm text-text-dim">
               Mostrando {(page - 1) * LIMIT + 1} a{' '}
               {Math.min(page * LIMIT, total)} de {total} shows
             </p>

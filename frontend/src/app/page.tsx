@@ -163,7 +163,7 @@ export default function HomePage() {
                 ].map((stat) => {
                   const Icon = stat.icon;
                   return (
-                    <div key={stat.label} className="flex flex-col items-center gap-1 px-4 py-5">
+                    <div key={stat.label} className="flex flex-col items-center gap-1 px-2 sm:px-4 py-4 sm:py-5">
                       <Icon className="mb-1 h-4 w-4 text-navy-400" />
                       <p className="text-base font-bold text-text-primary sm:text-lg">{stat.value}</p>
                       <p className="text-xs text-text-faint">{stat.label}</p>
@@ -246,8 +246,9 @@ export default function HomePage() {
             <Swiper
               modules={[Autoplay, Navigation, Pagination]}
               spaceBetween={16}
-              slidesPerView={1.3}
+              slidesPerView={1.2}
               breakpoints={{
+                320: { slidesPerView: 1.2 },
                 480: { slidesPerView: 2.2 },
                 640: { slidesPerView: 2.5 },
                 768: { slidesPerView: 3.2 },
@@ -555,8 +556,9 @@ export default function HomePage() {
             <Swiper
               modules={[Autoplay, Navigation]}
               spaceBetween={16}
-              slidesPerView={1.5}
+              slidesPerView={1.2}
               breakpoints={{
+                320: { slidesPerView: 1.2 },
                 480: { slidesPerView: 2.2 },
                 640: { slidesPerView: 2.5 },
                 768: { slidesPerView: 3.2 },
@@ -841,7 +843,7 @@ export default function HomePage() {
       {/* ================================================================
           QUE ES LA PLATAFORMA / COMO FUNCIONA
       ================================================================ */}
-      <section className="relative overflow-hidden py-14 md:py-32">
+      <section className="relative overflow-hidden py-10 sm:py-14 md:py-32">
         {/* Background */}
         <div className="pointer-events-none absolute inset-0 bg-surface-deep">
           <div className="absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-navy-600/8 blur-[120px]" />
@@ -968,7 +970,7 @@ export default function HomePage() {
       {/* ================================================================
           CTA FINAL
       ================================================================ */}
-      <section className="relative overflow-hidden py-14 md:py-32">
+      <section className="relative overflow-hidden py-10 sm:py-14 md:py-32">
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute inset-0 bg-gradient-to-br from-navy-900/25 via-transparent to-indigo-900/25" />
           <div className="absolute left-1/4 top-1/2 h-96 w-96 -translate-y-1/2 rounded-full bg-navy-600/20 blur-[120px]" />

@@ -1,7 +1,7 @@
 export default function TerminosPage() {
   return (
     <div className="min-h-screen bg-surface-base">
-      <div className="mx-auto max-w-3xl px-4 py-12">
+      <div className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
         <div className="mb-10">
           <p className="text-xs font-semibold uppercase tracking-widest text-navy-400 mb-3">Legal</p>
           <h1 className="text-3xl font-bold text-text-primary md:text-4xl">Terminos y Condiciones</h1>
@@ -9,7 +9,7 @@ export default function TerminosPage() {
         </div>
 
         <div className="space-y-8">
-          <section className="rounded-xl border border-border-medium bg-surface-card p-6">
+          <section className="rounded-xl border border-border-medium bg-surface-card p-4 sm:p-6">
             <h2 className="mb-3 text-lg font-semibold text-text-primary">1. Aceptacion de los terminos</h2>
             <p className="text-text-tertiary leading-relaxed text-sm">
               Al acceder y utilizar Comediantes.com, aceptas estar sujeto a estos terminos y condiciones de uso.
@@ -17,7 +17,7 @@ export default function TerminosPage() {
             </p>
           </section>
 
-          <section className="rounded-xl border border-border-medium bg-surface-card p-6">
+          <section className="rounded-xl border border-border-medium bg-surface-card p-4 sm:p-6">
             <h2 className="mb-3 text-lg font-semibold text-text-primary">2. Descripcion del servicio</h2>
             <p className="text-text-tertiary leading-relaxed text-sm">
               Comediantes.com es una plataforma web que conecta comediantes con sus fans, permitiendo la venta
@@ -26,7 +26,7 @@ export default function TerminosPage() {
             </p>
           </section>
 
-          <section className="rounded-xl border border-border-medium bg-surface-card p-6">
+          <section className="rounded-xl border border-border-medium bg-surface-card p-4 sm:p-6">
             <h2 className="mb-3 text-lg font-semibold text-text-primary">3. Cuentas de usuario</h2>
             <p className="text-text-tertiary leading-relaxed text-sm">
               Para realizar compras debes crear una cuenta proporcionando informacion veraz y actualizada.
@@ -35,7 +35,7 @@ export default function TerminosPage() {
             </p>
           </section>
 
-          <section className="rounded-xl border border-border-medium bg-surface-card p-6">
+          <section className="rounded-xl border border-border-medium bg-surface-card p-4 sm:p-6">
             <h2 className="mb-3 text-lg font-semibold text-text-primary">4. Compras y pagos</h2>
             <p className="text-text-tertiary leading-relaxed text-sm">
               Todos los precios estan expresados en Soles Peruanos (S/.) e incluyen los impuestos aplicables.
@@ -44,7 +44,7 @@ export default function TerminosPage() {
             </p>
           </section>
 
-          <section className="rounded-xl border border-border-medium bg-surface-card p-6">
+          <section className="rounded-xl border border-border-medium bg-surface-card p-4 sm:p-6">
             <h2 className="mb-3 text-lg font-semibold text-text-primary">5. Envios y entregas</h2>
             <p className="text-text-tertiary leading-relaxed text-sm">
               Los envios se realizan a nivel nacional en Peru. Los tiempos de entrega pueden variar segun
@@ -52,7 +52,7 @@ export default function TerminosPage() {
             </p>
           </section>
 
-          <section className="rounded-xl border border-border-medium bg-surface-card p-6">
+          <section className="rounded-xl border border-border-medium bg-surface-card p-4 sm:p-6">
             <h2 className="mb-3 text-lg font-semibold text-text-primary">6. Politica de devoluciones</h2>
             <p className="text-text-tertiary leading-relaxed text-sm">
               Los productos personalizados (con autografo, carta manuscrita, etc.) no son elegibles para devolucion.
@@ -61,7 +61,7 @@ export default function TerminosPage() {
             </p>
           </section>
 
-          <section className="rounded-xl border border-border-medium bg-surface-card p-6">
+          <section className="rounded-xl border border-border-medium bg-surface-card p-4 sm:p-6">
             <h2 className="mb-3 text-lg font-semibold text-text-primary">7. Propiedad intelectual</h2>
             <p className="text-text-tertiary leading-relaxed text-sm">
               Todo el contenido de la plataforma, incluyendo imagenes, textos, logos y diseños, esta protegido
@@ -69,7 +69,7 @@ export default function TerminosPage() {
             </p>
           </section>
 
-          <section className="rounded-xl border border-border-medium bg-surface-card p-6">
+          <section className="rounded-xl border border-border-medium bg-surface-card p-4 sm:p-6">
             <h2 className="mb-3 text-lg font-semibold text-text-primary">8. Contacto</h2>
             <p className="text-text-tertiary leading-relaxed text-sm">
               Para consultas sobre estos terminos, contactanos a traves de nuestro correo electronico

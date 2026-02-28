@@ -17,16 +17,16 @@ export class ReportsController {
 
   @Get('admin/dashboard')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN, Role.STAFF)
-  @ApiOperation({ summary: 'Estadísticas generales del admin dashboard' })
+  @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Estadísticas generales del admin dashboard (Super Admin)' })
   getAdminDashboardStats() {
     return this.reportsService.getAdminDashboardStats();
   }
 
   @Get('admin/sales-chart')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN, Role.STAFF)
-  @ApiOperation({ summary: 'Gráfico de ventas (admin) — productos + entradas' })
+  @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Gráfico de ventas (Super Admin) — productos + entradas' })
   getAdminSalesChart(
     @Query('period') period?: 'week' | 'month' | 'year',
     @Query('artistId') artistId?: string,
@@ -36,32 +36,32 @@ export class ReportsController {
 
   @Get('admin/top-artists')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN, Role.STAFF)
-  @ApiOperation({ summary: 'Top artistas por ingresos generados' })
+  @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Top artistas por ingresos generados (Super Admin)' })
   getTopArtists(@Query('limit') limit?: string) {
     return this.reportsService.getTopArtistsByRevenue(limit ? parseInt(limit) : 10);
   }
 
   @Get('admin/reports-summary')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN, Role.STAFF)
-  @ApiOperation({ summary: 'KPIs resumen: ventas, ganancia, pendiente, pedidos' })
+  @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'KPIs resumen: ventas, ganancia, pendiente, pedidos (Super Admin)' })
   getReportsSummary(@Query('period') period?: 'week' | 'month' | 'year') {
     return this.reportsService.getReportsSummary(period || 'month');
   }
 
   @Get('admin/top-products')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN, Role.STAFF)
-  @ApiOperation({ summary: 'Top productos por unidades vendidas' })
+  @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Top productos por unidades vendidas (Super Admin)' })
   getTopProducts(@Query('limit') limit?: string) {
     return this.reportsService.getTopProducts(limit ? parseInt(limit) : 8);
   }
 
   @Get('admin/shows-summary')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN, Role.STAFF)
-  @ApiOperation({ summary: 'Resumen de shows: próximos, tickets, ocupación' })
+  @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Resumen de shows: próximos, tickets, ocupación (Super Admin)' })
   getShowsSummary() {
     return this.reportsService.getShowsSummary();
   }

@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
+import { useAuthStore } from '@/stores/auth.store';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -87,6 +89,15 @@ const LIMIT = 20;
 // ── Component ────────────────────────────────────────────────────────────────
 
 export default function AdminUsuariosPage() {
+  const router = useRouter();
+  const { user: currentUser } = useAuthStore();
+
+  useEffect(() => {
+    if (currentUser && currentUser.role !== 'SUPER_ADMIN') {
+      router.replace('/admin');
+    }
+  }, [currentUser, router]);
+
   const [users, setUsers] = useState<User[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -164,9 +175,9 @@ export default function AdminUsuariosPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary">
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text-primary">
             Usuarios
           </h2>
           <p className="mt-0.5 text-sm text-text-dim">
@@ -336,26 +347,30 @@ export default function AdminUsuariosPage() {
                       {formatDate(user.createdAt)}
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleToggleActive(user.id)}
-                        disabled={isToggling}
-                        className={
-                          user.isActive
-                            ? 'border border-red-500/20 text-red-400 hover:bg-red-500/10 hover:text-red-300'
-                            : 'border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300'
-                        }
-                      >
-                        {isToggling ? (
-                          <Loader2 className="mr-1 h-4 w-4 animate-spin" />
-                        ) : user.isActive ? (
-                          <UserX className="mr-1 h-4 w-4" />
-                        ) : (
-                          <UserCheck className="mr-1 h-4 w-4" />
-                        )}
-                        {user.isActive ? 'Desactivar' : 'Activar'}
-                      </Button>
+                      {user.role === 'SUPER_ADMIN' ? (
+                        <span className="text-xs text-text-ghost">—</span>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleToggleActive(user.id)}
+                          disabled={isToggling}
+                          className={
+                            user.isActive
+                              ? 'border border-red-500/20 text-red-400 hover:bg-red-500/10 hover:text-red-300'
+                              : 'border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300'
+                          }
+                        >
+                          {isToggling ? (
+                            <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                          ) : user.isActive ? (
+                            <UserX className="mr-1 h-4 w-4" />
+                          ) : (
+                            <UserCheck className="mr-1 h-4 w-4" />
+                          )}
+                          {user.isActive ? 'Desactivar' : 'Activar'}
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 );
@@ -367,8 +382,8 @@ export default function AdminUsuariosPage() {
 
         {/* Pagination */}
         {!loading && totalPages > 1 && (
-          <div className="flex items-center justify-between border-t border-border-default px-4 py-3">
-            <p className="text-sm text-text-dim">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between border-t border-border-default px-4 py-3">
+            <p className="text-xs sm:text-sm text-text-dim">
               Mostrando {(page - 1) * LIMIT + 1} a{' '}
               {Math.min(page * LIMIT, total)} de {total} usuarios
             </p>

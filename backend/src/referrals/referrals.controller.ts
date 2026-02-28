@@ -63,8 +63,8 @@ export class ReferralsController {
   @Get('commissions')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN, Role.STAFF)
-  @ApiOperation({ summary: 'Listar todas las comisiones (Admin)' })
+  @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Listar todas las comisiones (Super Admin)' })
   getCommissions(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
@@ -86,8 +86,8 @@ export class ReferralsController {
   @Get('commissions/summary')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN, Role.STAFF)
-  @ApiOperation({ summary: 'Resumen de comisiones (totales pendientes, pagadas, etc.)' })
+  @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Resumen de comisiones (Super Admin)' })
   getCommissionsSummary() {
     return this.referralsService.getCommissionsSummary();
   }
@@ -95,8 +95,8 @@ export class ReferralsController {
   @Get('commissions/beneficiaries-pending')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN, Role.STAFF)
-  @ApiOperation({ summary: 'Beneficiarios (artistas + referidores) con comisiones pendientes' })
+  @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Beneficiarios con comisiones pendientes (Super Admin)' })
   getBeneficiariesWithPending() {
     return this.referralsService.getBeneficiariesWithPending();
   }
@@ -104,8 +104,8 @@ export class ReferralsController {
   @Get('commissions/artists-pending')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN, Role.STAFF)
-  @ApiOperation({ summary: 'Artistas con comisiones pendientes' })
+  @Roles(Role.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Artistas con comisiones pendientes (Super Admin)' })
   getArtistsWithPending() {
     return this.referralsService.getArtistsWithPending();
   }

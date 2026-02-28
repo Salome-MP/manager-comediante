@@ -100,10 +100,10 @@ export default function LoginPage() {
       </div>
 
       {/* Right side — Login form */}
-      <div className="relative flex w-full md:w-1/2 items-center justify-center px-4 py-12">
+      <div className="relative flex w-full md:w-1/2 items-center justify-center px-4 py-8 sm:py-12">
         <div className="w-full max-w-md">
           {/* Header */}
-          <div className="mb-8 text-center">
+          <div className="mb-6 sm:mb-8 text-center">
             <Link href="/" className="inline-block mb-6">
               <span className="text-2xl font-black text-gradient-navy">Comediantes</span>
               <span className="text-2xl font-black text-text-muted">.com</span>
@@ -113,7 +113,7 @@ export default function LoginPage() {
           </div>
 
           {/* Card */}
-          <div className="rounded-2xl border border-border-strong bg-surface-card p-8 shadow-2xl shadow-[var(--shadow-color)]">
+          <div className="rounded-2xl border border-border-strong bg-surface-card p-5 sm:p-8 shadow-2xl shadow-[var(--shadow-color)]">
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-1.5">
                 <Label htmlFor="email" className="text-text-secondary text-sm font-medium">

@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { CheckCircle, XCircle, Clock, ArrowLeft, Loader2, Download, CreditCard, Package, Truck, MapPin, Gift, ExternalLink, Phone, Video } from 'lucide-react';
 import { toast } from 'sonner';
+import { TicketCountdown } from '@/components/ticket-countdown';
 
 const TIMELINE_STEPS = [
   { key: 'PENDING', label: 'Pendiente', icon: Clock },
@@ -42,7 +43,7 @@ function OrderTimeline({ status }: { status: string }) {
             )}
             {/* Icon circle */}
             <div
-              className={`relative z-10 flex h-8 w-8 items-center justify-center rounded-full transition-all duration-300 ${
+              className={`relative z-10 flex h-6 w-6 sm:h-8 sm:w-8 items-center justify-center rounded-full transition-all duration-300 ${
                 isCompleted
                   ? 'bg-navy-600 ring-2 ring-navy-500/30'
                   : isCurrent
@@ -58,7 +59,7 @@ function OrderTimeline({ status }: { status: string }) {
             </div>
             {/* Label */}
             <p
-              className={`mt-2 text-center text-xs font-medium ${
+              className={`mt-2 text-center text-[10px] sm:text-xs font-medium ${
                 isCompleted || isCurrent ? 'text-text-primary' : 'text-text-ghost'
               }`}
             >
@@ -168,14 +169,14 @@ function ConfirmacionContent() {
 
   return (
     <div className="min-h-screen bg-surface-base">
-      <div className="mx-auto max-w-2xl px-4 py-12">
+      <div className="mx-auto max-w-2xl px-4 py-6 sm:py-12">
         <div className="text-center mb-8">
           {headerIcon}
-          <h1 className="mt-4 text-3xl font-bold text-text-primary">{headerTitle}</h1>
+          <h1 className="mt-4 text-2xl sm:text-3xl font-bold text-text-primary">{headerTitle}</h1>
           <p className="mt-2 text-text-muted">{headerMessage}</p>
         </div>
 
-        <div className="rounded-xl border border-border-medium bg-surface-card p-6 space-y-5">
+        <div className="rounded-xl border border-border-medium bg-surface-card p-4 sm:p-6 space-y-5">
           {/* Order details */}
           <div className="flex items-center justify-between">
             <div>
@@ -371,6 +372,14 @@ function ConfirmacionContent() {
             <>
               <Separator className="bg-border-medium" />
               <div className="text-center space-y-3">
+                {order.expiresAt && (
+                  <div className="flex justify-center">
+                    <TicketCountdown
+                      expiresAt={order.expiresAt}
+                      onExpired={() => setOrder((prev) => prev ? { ...prev, status: 'CANCELLED' } : prev)}
+                    />
+                  </div>
+                )}
                 <p className="text-sm text-text-faint">
                   El pago no se completo. Puedes intentar de nuevo.
                 </p>
@@ -385,8 +394,13 @@ function ConfirmacionContent() {
                       } else {
                         toast.error('No se pudo generar el link de pago');
                       }
-                    } catch {
-                      toast.error('Error al generar el pago');
+                    } catch (err: any) {
+                      if (err?.response?.status === 400) {
+                        toast.error(err.response.data?.message || 'El pedido ha expirado');
+                        setOrder((prev) => prev ? { ...prev, status: 'CANCELLED' } : prev);
+                      } else {
+                        toast.error('Error al generar el pago');
+                      }
                     }
                   }}
                 >

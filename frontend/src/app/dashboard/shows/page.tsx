@@ -289,14 +289,14 @@ export default function ArtistShowsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary">Mis Shows</h2>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text-primary">Mis Shows</h2>
           <p className="mt-1 text-sm text-text-dim">{shows.length} shows registrados</p>
         </div>
         <Dialog open={createOpen} onOpenChange={setCreateOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-navy-600 text-white hover:bg-navy-500">
+            <Button className="bg-navy-600 text-white hover:bg-navy-500 w-full sm:w-auto">
               <Plus className="mr-2 h-4 w-4" /> Nuevo Show
             </Button>
           </DialogTrigger>
@@ -447,7 +447,7 @@ export default function ArtistShowsPage() {
       {/* Filters */}
       {shows.length > 0 && (
         <div className="flex flex-wrap items-center gap-3">
-          <div className="relative flex-1 min-w-[200px] max-w-sm">
+          <div className="relative min-w-0 w-full sm:min-w-[200px] sm:max-w-sm sm:flex-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-ghost" />
             <Input
               placeholder="Buscar por nombre o lugar..."

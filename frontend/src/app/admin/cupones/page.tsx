@@ -142,12 +142,12 @@ export default function AdminCuponesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-text-primary">Cupones de Descuento</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-text-primary">Cupones de Descuento</h2>
           <p className="mt-1 text-sm text-text-dim">{coupons.length} cupones</p>
         </div>
-        <Button onClick={handleOpenCreate} className="gap-2 bg-navy-600 hover:bg-navy-500 text-white font-semibold">
+        <Button onClick={handleOpenCreate} className="gap-2 bg-navy-600 hover:bg-navy-500 text-white font-semibold w-full sm:w-auto">
           <Plus className="h-4 w-4" />
           Crear cupon
         </Button>

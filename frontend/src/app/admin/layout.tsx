@@ -35,11 +35,11 @@ const navItems = [
   { href: '/admin/pedidos', label: 'Pedidos', icon: ClipboardList },
   { href: '/admin/fulfillment', label: 'Fulfillment', icon: Truck },
   { href: '/admin/devoluciones', label: 'Devoluciones', icon: RotateCcw },
-  { href: '/admin/usuarios', label: 'Usuarios', icon: Users },
+  { href: '/admin/usuarios', label: 'Usuarios', icon: Users, superAdminOnly: true },
   { href: '/admin/shows', label: 'Shows', icon: CalendarDays },
-  { href: '/admin/comisiones', label: 'Liquidaciones', icon: DollarSign },
+  { href: '/admin/comisiones', label: 'Liquidaciones', icon: DollarSign, superAdminOnly: true },
   { href: '/admin/cupones', label: 'Cupones', icon: Percent },
-  { href: '/admin/reportes', label: 'Reportes', icon: BarChart3 },
+  { href: '/admin/reportes', label: 'Reportes', icon: BarChart3, superAdminOnly: true },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -70,6 +70,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </div>
     );
   }
+
+  const isSuperAdmin = user.role === 'SUPER_ADMIN';
+
+  const filteredNavItems = navItems.filter(
+    (item) => !item.superAdminOnly || isSuperAdmin
+  );
 
   const currentNavItem = navItems.find(
     (i) => i.href === pathname || (i.href !== '/admin' && pathname.startsWith(i.href))
@@ -128,7 +134,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <ChevronRight className="h-3.5 w-3.5" />
             </button>
           )}
-          {navItems.map((item) => {
+          {filteredNavItems.map((item) => {
             const isActive =
               pathname === item.href ||
               (item.href !== '/admin' && pathname.startsWith(item.href));
@@ -191,7 +197,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <header className="flex h-14 items-center justify-between border-b border-border-default bg-surface-sidebar px-4 md:px-6">
           <div className="flex items-center gap-3">
             <MobileSidebar
-              navItems={navItems}
+              navItems={filteredNavItems}
               user={user}
               basePath="/admin"
               brandLabel="Admin Panel"

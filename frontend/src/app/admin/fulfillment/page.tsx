@@ -68,9 +68,9 @@ export default function FulfillmentPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary">Fulfillment</h2>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text-primary">Fulfillment</h2>
           <p className="mt-1 text-sm text-text-dim">Gestiona el envio de pedidos</p>
         </div>
         <Button
@@ -92,7 +92,7 @@ export default function FulfillmentPage() {
             { label: 'Enviados', value: stats.shipped, color: 'text-indigo-400', bg: 'bg-indigo-500/10' },
             { label: 'Personalizaciones pendientes', value: stats.pendingCustomizations, color: 'text-amber-400', bg: 'bg-amber-500/10' },
           ].map((s) => (
-            <div key={s.label} className="rounded-xl border border-border-default bg-surface-card p-4">
+            <div key={s.label} className="rounded-xl border border-border-default bg-surface-card p-3 sm:p-4">
               <p className="text-sm text-text-dim">{s.label}</p>
               <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
             </div>
@@ -101,7 +101,7 @@ export default function FulfillmentPage() {
       )}
 
       {/* Kanban Board */}
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {columns.map((col) => {
           const orders = board[col.key] || [];
           return (

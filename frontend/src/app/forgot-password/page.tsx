@@ -40,7 +40,7 @@ export default function ForgotPasswordPage() {
 
       <div className="relative w-full max-w-md">
         {/* Header */}
-        <div className="mb-8 text-center">
+        <div className="mb-6 sm:mb-8 text-center">
           <Link href="/" className="inline-block mb-6">
             <span className="text-2xl font-black text-gradient-navy">Comediantes</span>
             <span className="text-2xl font-black text-text-muted">.com</span>
@@ -50,7 +50,7 @@ export default function ForgotPasswordPage() {
         </div>
 
         {/* Card */}
-        <div className="rounded-2xl border border-border-strong bg-surface-card p-8 shadow-2xl shadow-[var(--shadow-color)]">
+        <div className="rounded-2xl border border-border-strong bg-surface-card p-5 sm:p-8 shadow-2xl shadow-[var(--shadow-color)]">
           {sent ? (
             <div className="space-y-5 text-center">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-emerald-500/15 ring-1 ring-emerald-500/30">

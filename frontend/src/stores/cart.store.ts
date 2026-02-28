@@ -6,7 +6,7 @@ interface CartState {
   cart: Cart | null;
   isLoading: boolean;
   fetchCart: () => Promise<void>;
-  addItem: (artistProductId: string, quantity: number, variantSelection?: Record<string, string>, personalization?: string, customizations?: { type: string; price: number }[]) => Promise<void>;
+  addItem: (artistProductId: string, quantity: number, variantSelection?: Record<string, string>, personalization?: string, customizations?: { type: string; price: number; notes?: string }[]) => Promise<void>;
   updateQuantity: (itemId: string, quantity: number) => Promise<void>;
   removeItem: (itemId: string) => Promise<void>;
   clearCart: () => Promise<void>;

@@ -315,7 +315,7 @@ export default function ArtistProfilePage() {
 
         {/* Contenido del perfil superpuesto al banner */}
         <div className="mx-auto max-w-7xl px-4">
-          <div className="-mt-20 md:-mt-28 relative z-10 flex flex-col gap-6 md:flex-row md:items-end md:gap-8 pb-8">
+          <div className="-mt-20 md:-mt-28 relative z-10 flex flex-col gap-4 sm:gap-6 md:flex-row md:items-end md:gap-8 pb-6 sm:pb-8">
 
             {/* Avatar con ring de color */}
             <div className="relative shrink-0 self-center md:self-auto">
@@ -344,7 +344,7 @@ export default function ArtistProfilePage() {
                 <Badge className="mb-2 text-[11px] tracking-widest uppercase" style={{ backgroundColor: `${accent}33`, color: accent, borderColor: `${accent}4d` }}>
                   Comediante
                 </Badge>
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-text-primary leading-none">
+                <h1 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-text-primary leading-none">
                   {artist.stageName}
                 </h1>
                 {artist.tagline && (
@@ -470,7 +470,7 @@ export default function ArtistProfilePage() {
           {/* Columna principal — tabs */}
           <div className="space-y-6">
             <Tabs defaultValue={artist.artistProducts.length > 0 ? 'productos' : artist.shows.length > 0 ? 'shows' : galleryAll.length > 0 ? 'galeria' : 'productos'}>
-              <TabsList className="bg-surface-card border border-border-default h-11 gap-1">
+              <TabsList className="bg-surface-card border border-border-default h-11 gap-1 overflow-x-auto w-full justify-start">
                 {artist.artistProducts.length > 0 && (
                   <TabsTrigger
                     value="productos"

@@ -130,6 +130,7 @@ export interface Order {
   total: number;
   paymentId?: string;
   paymentMethod?: string;
+  expiresAt?: string | null;
   trackingNumber?: string;
   carrier?: string;
   shippedAt?: string;
@@ -194,6 +195,8 @@ export interface Ticket {
   qrCode: string;
   status: string;
   price: number;
+  paymentId?: string | null;
+  expiresAt?: string | null;
   show?: Show;
 }
 

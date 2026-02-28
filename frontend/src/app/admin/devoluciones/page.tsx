@@ -95,13 +95,13 @@ export default function DevolucionesPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary">Devoluciones</h2>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text-primary">Devoluciones</h2>
           <p className="mt-1 text-sm text-text-dim">{total} solicitudes</p>
         </div>
         <Select value={filterStatus} onValueChange={(v) => { setFilterStatus(v === 'ALL' ? '' : v); setLoading(true); }}>
-          <SelectTrigger className="w-44 border-border-strong bg-overlay-light text-text-primary">
+          <SelectTrigger className="w-full sm:w-44 border-border-strong bg-overlay-light text-text-primary">
             <SelectValue placeholder="Filtrar por estado" />
           </SelectTrigger>
           <SelectContent className="border-border-strong bg-surface-tooltip text-text-secondary">
@@ -128,7 +128,7 @@ export default function DevolucionesPage() {
           {returns.map((r: any) => (
             <div
               key={r.id}
-              className="flex items-center justify-between rounded-xl border border-border-default bg-surface-card p-4 transition-all hover:border-overlay-hover cursor-pointer"
+              className="flex items-center justify-between rounded-xl border border-border-default bg-surface-card p-3 sm:p-4 transition-all hover:border-overlay-hover cursor-pointer"
               onClick={() => openDetail(r.id)}
             >
               <div className="flex-1 min-w-0">

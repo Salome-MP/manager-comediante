@@ -401,6 +401,14 @@ async function main() {
 
   const artistIds: string[] = [];
 
+  const customizationTypes = [
+    { type: 'AUTOGRAPH', description: 'Autografo personalizado', price: 25 },
+    { type: 'HANDWRITTEN_LETTER', description: 'Carta manuscrita personalizada', price: 35 },
+    { type: 'VIDEO_GREETING', description: 'Video saludo personalizado', price: 50 },
+    { type: 'VIDEO_CALL', description: 'Videollamada con el artista', price: 100 },
+    { type: 'PRODUCT_PERSONALIZATION', description: 'Personalizacion de producto', price: 15 },
+  ];
+
   for (const a of artistsData) {
     const slug = generateSlug(a.stageName);
     const user = await prisma.user.upsert({
@@ -419,6 +427,7 @@ async function main() {
             tagline: a.tagline,
             biography: a.biography,
             isFeatured: a.isFeatured,
+            isApproved: true,
             commissionRate: a.commissionRate,
             socialLinks: a.socialLinks,
           },
@@ -426,16 +435,45 @@ async function main() {
       },
       include: { artist: true },
     });
+
+    let artistId: string;
     if (user.artist) {
-      artistIds.push(user.artist.id);
+      artistId = user.artist.id;
     } else {
       // Already existed, fetch artist
       const existing = await prisma.artist.findUnique({ where: { userId: user.id } });
-      if (existing) artistIds.push(existing.id);
+      if (!existing) continue;
+      artistId = existing.id;
+      // Ensure existing artists are approved
+      await prisma.artist.update({ where: { id: artistId }, data: { isApproved: true } });
     }
-    console.log(`  Artist: ${a.stageName}`);
+    artistIds.push(artistId);
+
+    // Create 5 customization types for each artist (some active, some inactive)
+    for (let ci = 0; ci < customizationTypes.length; ci++) {
+      const ct = customizationTypes[ci];
+      // Featured artists get more active customizations
+      const isActive = a.isFeatured ? ci < 4 : ci < 2;
+      try {
+        await prisma.artistCustomization.upsert({
+          where: { artistId_type: { artistId, type: ct.type as any } },
+          update: {},
+          create: {
+            artistId,
+            type: ct.type as any,
+            description: ct.description,
+            price: ct.price,
+            isActive,
+          },
+        });
+      } catch {
+        // Skip if already exists
+      }
+    }
+
+    console.log(`  Artist: ${a.stageName} (${a.isFeatured ? 'featured' : 'regular'})`);
   }
-  console.log(`Total artists: ${artistIds.length}\n`);
+  console.log(`Total artists: ${artistIds.length} (all approved, with customizations)\n`);
 
   // ==========================================
   // FAN USERS (10 fans)

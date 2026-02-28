@@ -126,7 +126,7 @@ export default function Navbar() {
               <Menu className="h-5 w-5" />
             </button>
           </SheetTrigger>
-          <SheetContent side="left" className="w-64 p-0">
+          <SheetContent side="left" className="w-3/4 max-w-64 p-0">
             <SheetHeader className="px-4 pt-4 pb-2">
               <SheetTitle className="text-left text-sm">
                 <span className="text-gradient-navy font-black">Comediantes</span>
@@ -257,7 +257,7 @@ export default function Navbar() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
-                  className="w-80"
+                  className="w-80 max-w-[calc(100vw-2rem)]"
                 >
                   <div className="flex items-center justify-between px-3 py-2.5">
                     <p className="text-sm font-semibold text-text-primary">Notificaciones</p>
@@ -279,7 +279,7 @@ export default function Navbar() {
                       No tienes notificaciones
                     </div>
                   ) : (
-                    <div className="max-h-72 overflow-y-auto">
+                    <div className="max-h-[min(18rem,60vh)] overflow-y-auto">
                       {notifications.map((n) => (
                         <div
                           key={n.id}

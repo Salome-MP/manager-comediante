@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useAuthStore } from '@/stores/auth.store';
 import api from '@/lib/api';
 import { toast } from 'sonner';
 import { Plus, Pencil, Trash2, Upload, Loader2, X, Image as ImageIcon, ShoppingBag, Search } from 'lucide-react';
@@ -123,6 +124,9 @@ const labelClass = 'text-text-secondary text-sm font-medium';
 // ---------------------------------------------------------------------------
 
 export default function ProductosPage() {
+  const { user: currentUser } = useAuthStore();
+  const isSuperAdmin = currentUser?.role === 'SUPER_ADMIN';
+
   // ---- Shared data ----
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -495,7 +499,7 @@ export default function ProductosPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-text-primary">Productos</h2>
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text-primary">Productos</h2>
         <p className="mt-0.5 text-sm text-text-dim">
           Gestiona el catalogo de productos de la plataforma
         </p>
@@ -528,13 +532,13 @@ export default function ProductosPage() {
         {/* ================================================================ */}
         <TabsContent value="productos-base" className="space-y-4 mt-4">
           {/* Header */}
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <p className="text-sm text-text-dim">
               {totalProducts} producto{totalProducts !== 1 ? 's' : ''} en total
             </p>
             <Button
               onClick={() => setCreateOpen(true)}
-              className="bg-navy-600 hover:bg-navy-500 text-white shadow-lg shadow-navy-900/30"
+              className="bg-navy-600 hover:bg-navy-500 text-white shadow-lg shadow-navy-900/30 w-full sm:w-auto"
             >
               <Plus className="mr-2 h-4 w-4" />
               Nuevo Producto
@@ -695,14 +699,16 @@ export default function ProductosPage() {
                           >
                             <Pencil className="h-4 w-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-red-500 hover:bg-red-500/10 hover:text-red-400 transition-colors"
-                            onClick={() => openDelete(product)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+                          {isSuperAdmin && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-red-500 hover:bg-red-500/10 hover:text-red-400 transition-colors"
+                              onClick={() => openDelete(product)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -1159,7 +1165,7 @@ export default function ProductosPage() {
         {/* ================================================================ */}
         <TabsContent value="asignar-artista" className="space-y-6 mt-4">
           {/* Assignment form */}
-          <div className="rounded-xl border border-border-default bg-surface-card p-6">
+          <div className="rounded-xl border border-border-default bg-surface-card p-4 sm:p-6">
             <h3 className="mb-5 text-base font-semibold text-text-primary">
               Asignar Producto a Artista
             </h3>

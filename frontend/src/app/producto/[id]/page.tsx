@@ -90,6 +90,7 @@ export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
   const [customizations, setCustomizations] = useState<Customization[]>([]);
   const [selectedCustomizations, setSelectedCustomizations] = useState<Set<string>>(new Set());
+  const [customizationNotes, setCustomizationNotes] = useState<Record<string, string>>({});
   const [personalization, setPersonalization] = useState('');
 
   // Wishlist
@@ -203,7 +204,7 @@ export default function ProductDetailPage() {
     try {
       const selectedCusts = customizations
         .filter(c => selectedCustomizations.has(c.type))
-        .map(c => ({ type: c.type, price: Number(c.price) }));
+        .map(c => ({ type: c.type, price: Number(c.price), notes: customizationNotes[c.type] || undefined }));
       await addItem(
         product.id,
         quantity,
@@ -371,7 +372,7 @@ export default function ProductDetailPage() {
               </div>
             )}
 
-            <p className="mt-4 text-3xl font-bold text-text-primary">
+            <p className="mt-4 text-2xl sm:text-3xl font-bold text-text-primary">
               S/. {Number(product.salePrice).toFixed(2)}
             </p>
             <p className="mt-1 text-sm text-text-faint">
@@ -477,40 +478,66 @@ export default function ProductDetailPage() {
                 <div className="space-y-2">
                   {customizations.map((c) => {
                     const isSelected = selectedCustomizations.has(c.type);
+                    const notesPlaceholders: Record<string, string> = {
+                      VIDEO_GREETING: 'Ej: Es para mi amigo Juan, que cumpla 30 años, menciona que es hincha de la U',
+                      AUTOGRAPH: 'Ej: Dedicado a María, con cariño',
+                      HANDWRITTEN_LETTER: 'Ej: Es un regalo de cumpleaños para mi hermana Ana, le encanta tu humor',
+                    };
+                    const notesLabels: Record<string, string> = {
+                      VIDEO_GREETING: '¿Como quieres tu video saludo?',
+                      AUTOGRAPH: '¿A quien va dedicado el autografo?',
+                      HANDWRITTEN_LETTER: '¿Que te gustaria que diga la carta?',
+                    };
+                    const hasNotes = isSelected && notesPlaceholders[c.type];
                     return (
-                      <button
-                        key={c.type}
-                        type="button"
-                        onClick={() => toggleCustomization(c.type)}
-                        className={`flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-all duration-150 ${
-                          isSelected
-                            ? 'border-navy-500/50 bg-navy-500/10'
-                            : 'border-border-medium bg-overlay-light hover:border-border-hover'
-                        }`}
-                      >
-                        <div className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border transition-colors ${
-                          isSelected
-                            ? 'border-navy-500 bg-navy-600'
-                            : 'border-border-strong bg-overlay-light'
-                        }`}>
-                          {isSelected && (
-                            <svg className="h-3 w-3 text-white" viewBox="0 0 12 12" fill="none">
-                              <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-text-primary">
-                            {customizationLabels[c.type] || c.type}
-                          </p>
-                          {c.description && (
-                            <p className="text-xs text-text-faint">{c.description}</p>
-                          )}
-                        </div>
-                        <span className={`text-sm font-bold flex-shrink-0 ${isSelected ? 'text-navy-400' : 'text-emerald-400'}`}>
-                          + S/. {Number(c.price).toFixed(2)}
-                        </span>
-                      </button>
+                      <div key={c.type}>
+                        <button
+                          type="button"
+                          onClick={() => toggleCustomization(c.type)}
+                          className={`flex w-full items-center gap-3 rounded-lg border p-3 text-left transition-all duration-150 ${
+                            isSelected
+                              ? 'border-navy-500/50 bg-navy-500/10'
+                              : 'border-border-medium bg-overlay-light hover:border-border-hover'
+                          }`}
+                        >
+                          <div className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border transition-colors ${
+                            isSelected
+                              ? 'border-navy-500 bg-navy-600'
+                              : 'border-border-strong bg-overlay-light'
+                          }`}>
+                            {isSelected && (
+                              <svg className="h-3 w-3 text-white" viewBox="0 0 12 12" fill="none">
+                                <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-text-primary">
+                              {customizationLabels[c.type] || c.type}
+                            </p>
+                            {c.description && (
+                              <p className="text-xs text-text-faint">{c.description}</p>
+                            )}
+                          </div>
+                          <span className={`text-sm font-bold flex-shrink-0 ${isSelected ? 'text-navy-400' : 'text-emerald-400'}`}>
+                            + S/. {Number(c.price).toFixed(2)}
+                          </span>
+                        </button>
+                        {hasNotes && (
+                          <div className="mt-1.5 ml-8 space-y-1">
+                            <label className="text-xs font-medium text-text-secondary">
+                              {notesLabels[c.type]}
+                            </label>
+                            <textarea
+                              value={customizationNotes[c.type] || ''}
+                              onChange={(e) => setCustomizationNotes(prev => ({ ...prev, [c.type]: e.target.value }))}
+                              placeholder={notesPlaceholders[c.type]}
+                              rows={2}
+                              className="w-full rounded-lg border border-border-strong bg-overlay-light px-3 py-2 text-sm text-text-primary outline-none placeholder:text-text-ghost focus:border-navy-500 focus:ring-1 focus:ring-navy-500/20 resize-none"
+                            />
+                          </div>
+                        )}
+                      </div>
                     );
                   })}
 
@@ -547,14 +574,14 @@ export default function ProductDetailPage() {
         {/* ===== TABS SECTION ===== */}
         <div className="mt-10 md:mt-14">
           <Tabs defaultValue="descripcion">
-            <TabsList variant="line" className="w-full justify-start border-b border-border-medium pb-0 gap-0">
-              <TabsTrigger value="descripcion" className="px-5 py-3 text-sm font-semibold">
+            <TabsList variant="line" className="w-full justify-start border-b border-border-medium pb-0 gap-0 overflow-x-auto">
+              <TabsTrigger value="descripcion" className="px-3 sm:px-5 py-3 text-sm font-semibold shrink-0">
                 Descripcion
               </TabsTrigger>
-              <TabsTrigger value="resenas" className="px-5 py-3 text-sm font-semibold">
+              <TabsTrigger value="resenas" className="px-3 sm:px-5 py-3 text-sm font-semibold shrink-0">
                 Reseñas {reviewStats.totalReviews > 0 && `(${reviewStats.totalReviews})`}
               </TabsTrigger>
-              <TabsTrigger value="devoluciones" className="px-5 py-3 text-sm font-semibold">
+              <TabsTrigger value="devoluciones" className="px-3 sm:px-5 py-3 text-sm font-semibold shrink-0">
                 Devoluciones
               </TabsTrigger>
             </TabsList>

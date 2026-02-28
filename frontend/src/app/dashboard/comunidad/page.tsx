@@ -221,9 +221,9 @@ export default function DashboardComunidadPage() {
   return (
     <div className="h-full flex flex-col">
       {/* ═══ Header ═══ */}
-      <div className="flex items-center justify-between pb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary">Comunidad</h2>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text-primary">Comunidad</h2>
           <p className="mt-0.5 text-sm text-text-dim">
             Publica avisos y modera el chat de tu comunidad
           </p>
@@ -232,7 +232,7 @@ export default function DashboardComunidadPage() {
           variant="outline"
           size="sm"
           onClick={() => setShowMembers(!showMembers)}
-          className={`text-xs gap-1.5 ${showMembers ? 'bg-navy-600/20 text-navy-600 dark:text-navy-300 border-navy-500/30' : ''}`}
+          className={`text-xs gap-1.5 w-full sm:w-auto ${showMembers ? 'bg-navy-600/20 text-navy-600 dark:text-navy-300 border-navy-500/30' : ''}`}
         >
           <Users2 className="h-3.5 w-3.5" />
           {members.length} miembros

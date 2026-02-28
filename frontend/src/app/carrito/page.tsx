@@ -178,15 +178,22 @@ export default function CarritoPage() {
                           S/. {unitPrice.toFixed(2)} c/u
                         </p>
                         {(item.customizations as any[])?.length > 0 && (
-                          <div className="mt-1.5 flex flex-wrap gap-1">
-                            {(item.customizations as any[]).map((c: any, idx: number) => (
-                              <span
-                                key={idx}
-                                className="inline-flex items-center gap-1 rounded-md bg-navy-500/10 border border-navy-500/20 px-2 py-0.5 text-xs text-navy-600 dark:text-navy-300"
-                              >
-                                <Sparkles className="h-3 w-3" />
-                                {customizationLabels[c.type] || c.type} +S/.{Number(c.price).toFixed(2)}
-                              </span>
+                          <div className="mt-1.5 space-y-1">
+                            <div className="flex flex-wrap gap-1">
+                              {(item.customizations as any[]).map((c: any, idx: number) => (
+                                <span
+                                  key={idx}
+                                  className="inline-flex items-center gap-1 rounded-md bg-navy-500/10 border border-navy-500/20 px-2 py-0.5 text-xs text-navy-600 dark:text-navy-300"
+                                >
+                                  <Sparkles className="h-3 w-3" />
+                                  {customizationLabels[c.type] || c.type} +S/.{Number(c.price).toFixed(2)}
+                                </span>
+                              ))}
+                            </div>
+                            {(item.customizations as any[]).filter((c: any) => c.notes).map((c: any, idx: number) => (
+                              <p key={idx} className="text-xs text-text-faint italic ml-1">
+                                {customizationLabels[c.type]}: &quot;{c.notes}&quot;
+                              </p>
                             ))}
                           </div>
                         )}

@@ -4,8 +4,8 @@ import { Instagram, Facebook, Twitter, Youtube } from 'lucide-react';
 export default function Footer() {
   return (
     <footer className="bg-navy-950 text-white">
-      <div className="mx-auto max-w-7xl px-4 py-14">
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-4">
+      <div className="mx-auto max-w-7xl px-4 py-10 sm:py-14">
+        <div className="grid grid-cols-1 gap-8 sm:gap-10 md:grid-cols-4">
           {/* Brand */}
           <div className="md:col-span-1">
             <Link href="/" className="inline-block">

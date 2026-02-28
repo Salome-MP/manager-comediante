@@ -233,14 +233,14 @@ export default function DashboardPersonalizacionesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight text-text-primary">Personalizaciones</h2>
+          <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-text-primary">Personalizaciones</h2>
           <p className="mt-1 text-sm text-text-dim">Configura tus servicios y cumple pedidos</p>
         </div>
       </div>
 
       {/* Tabs */}
       <Tabs defaultValue="pending">
-        <TabsList className="border border-border-default bg-surface-card">
+        <TabsList className="border border-border-default bg-surface-card flex-wrap h-auto">
           <TabsTrigger
             value="pending"
             className="text-text-dim data-[state=active]:bg-navy-600/20 data-[state=active]:text-navy-600 dark:data-[state=active]:text-navy-300"
@@ -277,7 +277,7 @@ export default function DashboardPersonalizacionesPage() {
         {/* Pending tab — type-specific forms */}
         <TabsContent value="pending" className="mt-4">
           {pendingItems.length === 0 ? (
-            <div className="rounded-2xl border border-border-default bg-surface-card p-12 text-center">
+            <div className="rounded-2xl border border-border-default bg-surface-card p-8 sm:p-12 text-center">
               <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10">
                 <Check className="h-8 w-8 text-emerald-400" />
               </div>
@@ -412,7 +412,7 @@ export default function DashboardPersonalizacionesPage() {
         {/* History tab */}
         <TabsContent value="history" className="mt-4">
           {historyItems.length === 0 ? (
-            <div className="rounded-2xl border border-border-default bg-surface-card p-12 text-center">
+            <div className="rounded-2xl border border-border-default bg-surface-card p-8 sm:p-12 text-center">
               <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-navy-500/10">
                 <Clock className="h-8 w-8 text-navy-400" />
               </div>
@@ -478,7 +478,7 @@ export default function DashboardPersonalizacionesPage() {
         {/* Video call config tab */}
         {hasVideoCall && (
           <TabsContent value="videocall" className="mt-4">
-            <div className="rounded-2xl border border-border-default bg-surface-card p-6">
+            <div className="rounded-2xl border border-border-default bg-surface-card p-4 sm:p-6">
               <h3 className="text-lg font-semibold text-text-primary mb-4 flex items-center gap-2">
                 <Phone className="h-5 w-5 text-navy-400" /> Configuracion de videollamada
               </h3>
@@ -520,7 +520,7 @@ export default function DashboardPersonalizacionesPage() {
                 <div className="space-y-3">
                   <Label className="text-xs text-text-dim">Horarios disponibles</Label>
                   {vcSlots.map((slot, idx) => (
-                    <div key={idx} className="flex items-center gap-2">
+                    <div key={idx} className="flex flex-wrap items-center gap-2">
                       <Select
                         value={String(slot.dayOfWeek)}
                         onValueChange={(v) => {
@@ -529,7 +529,7 @@ export default function DashboardPersonalizacionesPage() {
                           setVcSlots(updated);
                         }}
                       >
-                        <SelectTrigger className="w-32 border-border-strong bg-overlay-light text-text-primary text-xs">
+                        <SelectTrigger className="w-full sm:w-32 border-border-strong bg-overlay-light text-text-primary text-xs">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="border-border-strong bg-surface-tooltip text-text-secondary">
@@ -546,7 +546,7 @@ export default function DashboardPersonalizacionesPage() {
                           updated[idx] = { ...updated[idx], startTime: e.target.value };
                           setVcSlots(updated);
                         }}
-                        className={`w-28 text-xs ${inputClass}`}
+                        className={`w-24 sm:w-28 text-xs ${inputClass}`}
                       />
                       <span className="text-text-ghost text-xs">a</span>
                       <Input
@@ -557,7 +557,7 @@ export default function DashboardPersonalizacionesPage() {
                           updated[idx] = { ...updated[idx], endTime: e.target.value };
                           setVcSlots(updated);
                         }}
-                        className={`w-28 text-xs ${inputClass}`}
+                        className={`w-24 sm:w-28 text-xs ${inputClass}`}
                       />
                       <Button
                         variant="ghost"
@@ -659,6 +659,12 @@ function PendingItemCard({
           <p className="text-xs text-text-ghost">
             Pedido: {item.orderItem.order.orderNumber} — {new Date(item.orderItem.order.createdAt).toLocaleDateString('es-PE')}
           </p>
+          {item.notes && (
+            <div className="mt-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2">
+              <p className="text-[10px] font-medium text-amber-600 dark:text-amber-400 mb-0.5">Nota del cliente:</p>
+              <p className="text-xs text-text-secondary italic">&quot;{item.notes}&quot;</p>
+            </div>
+          )}
           {/* Deadline only for physical customizations */}
           {(item.type === 'AUTOGRAPH' || item.type === 'HANDWRITTEN_LETTER' || item.type === 'PRODUCT_PERSONALIZATION') && (() => {
             const orderDate = new Date(item.orderItem.order.createdAt);
